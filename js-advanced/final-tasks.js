@@ -470,4 +470,3 @@ console.log(myTodos.todos); // []
  */
 }
 
-// ------------------Finished 600-js-problem-solves------------------------------->

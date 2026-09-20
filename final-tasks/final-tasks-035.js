@@ -10,26 +10,21 @@
     }
 
     createSharedAtomicCounter() {
-      const buffer = new SharedArrayBuffer(
-        Int32Array.BYTES_PER_ELEMENT
-      );
+      const buffer = new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT);
 
       const state = new Int32Array(buffer);
 
       return {
-        increment: (amount = 1) =>
-          Atomics.add(state, 0, amount),
+        increment: (amount = 1) => Atomics.add(state, 0, amount),
 
-        value: () =>
-          Atomics.load(state, 0),
+        value: () => Atomics.load(state, 0),
       };
     }
   }
 
   // Example
   const myTodos = new TodoApp();
-  const counter =
-    myTodos.createSharedAtomicCounter();
+  const counter = myTodos.createSharedAtomicCounter();
 
   counter.increment(5);
   console.log(counter.value());
@@ -49,25 +44,18 @@
     }
 
     createAtomicWorkQueue(size = 8) {
-      const buffer =
-        new SharedArrayBuffer(
-          (size + 2) *
-            Int32Array.BYTES_PER_ELEMENT
-        );
+      const buffer = new SharedArrayBuffer(
+        (size + 2) * Int32Array.BYTES_PER_ELEMENT,
+      );
 
       const state = new Int32Array(buffer);
 
       const push = (value) => {
-        const tail =
-          Atomics.load(state, 1);
+        const tail = Atomics.load(state, 1);
 
-        const next =
-          (tail + 1) % size;
+        const next = (tail + 1) % size;
 
-        if (
-          next ===
-          Atomics.load(state, 0)
-        ) {
+        if (next === Atomics.load(state, 0)) {
           return false;
         }
 
@@ -78,10 +66,8 @@
       };
 
       const pop = () => {
-        const head =
-          Atomics.load(state, 0);
-        const tail =
-          Atomics.load(state, 1);
+        const head = Atomics.load(state, 0);
+        const tail = Atomics.load(state, 1);
 
         if (head === tail) {
           return undefined;
@@ -89,11 +75,7 @@
 
         const value = state[2 + head];
 
-        Atomics.store(
-          state,
-          0,
-          (head + 1) % size
-        );
+        Atomics.store(state, 0, (head + 1) % size);
 
         return value;
       };
@@ -104,8 +86,7 @@
 
   // Example
   const myTodos = new TodoApp();
-  const queue =
-    myTodos.createAtomicWorkQueue(4);
+  const queue = myTodos.createAtomicWorkQueue(4);
 
   queue.push(101);
   queue.push(202);
@@ -128,10 +109,7 @@
     }
 
     createAtomicSemaphore(limit) {
-      const buffer =
-        new SharedArrayBuffer(
-          Int32Array.BYTES_PER_ELEMENT
-        );
+      const buffer = new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT);
 
       const state = new Int32Array(buffer);
       Atomics.store(state, 0, limit);
@@ -139,20 +117,15 @@
       return {
         tryAcquire() {
           while (true) {
-            const available =
-              Atomics.load(state, 0);
+            const available = Atomics.load(state, 0);
 
             if (available <= 0) {
               return false;
             }
 
             if (
-              Atomics.compareExchange(
-                state,
-                0,
-                available,
-                available - 1
-              ) === available
+              Atomics.compareExchange(state, 0, available, available - 1) ===
+              available
             ) {
               return true;
             }
@@ -168,8 +141,7 @@
 
   // Example
   const myTodos = new TodoApp();
-  const semaphore =
-    myTodos.createAtomicSemaphore(2);
+  const semaphore = myTodos.createAtomicSemaphore(2);
 
   console.log(semaphore.tryAcquire());
   console.log(semaphore.tryAcquire());
@@ -192,28 +164,17 @@
     }
 
     createCompareExchangeState(initial) {
-      const buffer =
-        new SharedArrayBuffer(
-          Int32Array.BYTES_PER_ELEMENT
-        );
+      const buffer = new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT);
 
       const state = new Int32Array(buffer);
       state[0] = initial;
 
       return {
         transition(expected, next) {
-          return (
-            Atomics.compareExchange(
-              state,
-              0,
-              expected,
-              next
-            ) === expected
-          );
+          return Atomics.compareExchange(state, 0, expected, next) === expected;
         },
 
-        read: () =>
-          Atomics.load(state, 0),
+        read: () => Atomics.load(state, 0),
       };
     }
   }
@@ -221,12 +182,9 @@
   // Example
   const myTodos = new TodoApp();
 
-  const state =
-    myTodos.createCompareExchangeState(1);
+  const state = myTodos.createCompareExchangeState(1);
 
-  console.log(
-    state.transition(1, 2)
-  );
+  console.log(state.transition(1, 2));
 
   console.log(state.read());
 
@@ -245,46 +203,35 @@
     }
 
     createAtomicVersionGate() {
-      const buffer =
-        new SharedArrayBuffer(
-          Int32Array.BYTES_PER_ELEMENT
-        );
+      const buffer = new SharedArrayBuffer(Int32Array.BYTES_PER_ELEMENT);
 
       const state = new Int32Array(buffer);
 
       return {
         commit(version) {
           while (true) {
-            const current =
-              Atomics.load(state, 0);
+            const current = Atomics.load(state, 0);
 
             if (version <= current) {
               return false;
             }
 
             if (
-              Atomics.compareExchange(
-                state,
-                0,
-                current,
-                version
-              ) === current
+              Atomics.compareExchange(state, 0, current, version) === current
             ) {
               return true;
             }
           }
         },
 
-        current: () =>
-          Atomics.load(state, 0),
+        current: () => Atomics.load(state, 0),
       };
     }
   }
 
   // Example
   const myTodos = new TodoApp();
-  const gate =
-    myTodos.createAtomicVersionGate();
+  const gate = myTodos.createAtomicVersionGate();
 
   console.log(gate.commit(10));
   console.log(gate.commit(8));

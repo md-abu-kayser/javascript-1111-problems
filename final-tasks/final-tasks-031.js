@@ -15,23 +15,19 @@
         new TextEncoder().encode(secret),
         { name: "HMAC", hash: "SHA-256" },
         false,
-        ["sign", "verify"]
+        ["sign", "verify"],
       );
 
       return {
         sign: async (message) =>
-          crypto.subtle.sign(
-            "HMAC",
-            key,
-            new TextEncoder().encode(message)
-          ),
+          crypto.subtle.sign("HMAC", key, new TextEncoder().encode(message)),
 
         verify: async (message, signature) =>
           crypto.subtle.verify(
             "HMAC",
             key,
             signature,
-            new TextEncoder().encode(message)
+            new TextEncoder().encode(message),
           ),
       };
     }
@@ -40,19 +36,11 @@
   // Example
   const myTodos = new TodoApp();
 
-  myTodos
-    .createHmacVerifier("super-secret")
-    .then(async (hmac) => {
-      const signature =
-        await hmac.sign("todo-746");
+  myTodos.createHmacVerifier("super-secret").then(async (hmac) => {
+    const signature = await hmac.sign("todo-746");
 
-      console.log(
-        await hmac.verify(
-          "todo-746",
-          signature
-        )
-      );
-    });
+    console.log(await hmac.verify("todo-746", signature));
+  });
 
   //
 }
@@ -68,19 +56,14 @@
       this.todos = [];
     }
 
-    async derivePasswordKey(
-      password,
-      salt,
-      iterations = 100000
-    ) {
-      const baseKey =
-        await crypto.subtle.importKey(
-          "raw",
-          new TextEncoder().encode(password),
-          "PBKDF2",
-          false,
-          ["deriveKey"]
-        );
+    async derivePasswordKey(password, salt, iterations = 100000) {
+      const baseKey = await crypto.subtle.importKey(
+        "raw",
+        new TextEncoder().encode(password),
+        "PBKDF2",
+        false,
+        ["deriveKey"],
+      );
 
       return crypto.subtle.deriveKey(
         {
@@ -95,7 +78,7 @@
           length: 256,
         },
         false,
-        ["encrypt", "decrypt"]
+        ["encrypt", "decrypt"],
       );
     }
   }
@@ -104,16 +87,8 @@
   const myTodos = new TodoApp();
 
   myTodos
-    .derivePasswordKey(
-      "password",
-      "unique-user-salt"
-    )
-    .then((key) =>
-      console.log(
-        "Derived key:",
-        key.type
-      )
-    );
+    .derivePasswordKey("password", "unique-user-salt")
+    .then((key) => console.log("Derived key:", key.type));
 
   //
 }
@@ -130,40 +105,29 @@
       this.sessions = new Map();
     }
 
-    createSessionRotator(
-      sessionId,
-      ttlMs
-    ) {
+    createSessionRotator(sessionId, ttlMs) {
       const now = Date.now();
 
-      this.sessions.set(
-        sessionId,
-        {
-          createdAt: now,
-          expiresAt: now + ttlMs,
-          replacedBy: null,
-        }
-      );
+      this.sessions.set(sessionId, {
+        createdAt: now,
+        expiresAt: now + ttlMs,
+        replacedBy: null,
+      });
 
       return () => {
-        const current =
-          this.sessions.get(sessionId);
+        const current = this.sessions.get(sessionId);
 
         if (!current) {
-          throw new Error(
-            "Session not found"
-          );
+          throw new Error("Session not found");
         }
 
-        const next =
-          crypto.randomUUID();
+        const next = crypto.randomUUID();
 
         current.replacedBy = next;
 
         this.sessions.set(next, {
           createdAt: Date.now(),
-          expiresAt:
-            Date.now() + ttlMs,
+          expiresAt: Date.now() + ttlMs,
           replacedBy: null,
         });
 
@@ -175,11 +139,7 @@
   // Example
   const myTodos = new TodoApp();
 
-  const rotate =
-    myTodos.createSessionRotator(
-      "session-A",
-      60000
-    );
+  const rotate = myTodos.createSessionRotator("session-A", 60000);
 
   console.log(rotate());
 
@@ -203,10 +163,7 @@
         accept: (nonce) => {
           const now = Date.now();
 
-          for (const [
-            key,
-            expiresAt,
-          ] of this.nonces) {
+          for (const [key, expiresAt] of this.nonces) {
             if (expiresAt <= now) {
               this.nonces.delete(key);
             }
@@ -216,10 +173,7 @@
             return false;
           }
 
-          this.nonces.set(
-            nonce,
-            now + ttlMs
-          );
+          this.nonces.set(nonce, now + ttlMs);
 
           return true;
         },
@@ -229,8 +183,7 @@
 
   // Example
   const myTodos = new TodoApp();
-  const nonceStore =
-    myTodos.createReplayNonceStore(5000);
+  const nonceStore = myTodos.createReplayNonceStore(5000);
 
   console.log(nonceStore.accept("n1"));
   console.log(nonceStore.accept("n1"));
@@ -251,54 +204,31 @@
     }
 
     createCsrfTokenPair(sessionId) {
-      const secret =
-        crypto.randomUUID();
+      const secret = crypto.randomUUID();
 
-      const nonce =
-        crypto.randomUUID();
+      const nonce = crypto.randomUUID();
 
-      this.tokens.set(
-        sessionId,
-        {
-          secret,
-          nonce,
-        }
-      );
+      this.tokens.set(sessionId, {
+        secret,
+        nonce,
+      });
 
       return { nonce, secret };
     }
 
-    validateCsrf(
-      sessionId,
-      secret,
-      nonce
-    ) {
-      const pair =
-        this.tokens.get(sessionId);
+    validateCsrf(sessionId, secret, nonce) {
+      const pair = this.tokens.get(sessionId);
 
-      return Boolean(
-        pair &&
-          pair.secret === secret &&
-          pair.nonce === nonce
-      );
+      return Boolean(pair && pair.secret === secret && pair.nonce === nonce);
     }
   }
 
   // Example
   const myTodos = new TodoApp();
 
-  const pair =
-    myTodos.createCsrfTokenPair(
-      "session-1"
-    );
+  const pair = myTodos.createCsrfTokenPair("session-1");
 
-  console.log(
-    myTodos.validateCsrf(
-      "session-1",
-      pair.secret,
-      pair.nonce
-    )
-  );
+  console.log(myTodos.validateCsrf("session-1", pair.secret, pair.nonce));
 
   //
 }

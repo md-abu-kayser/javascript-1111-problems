@@ -14,26 +14,17 @@
         return node;
       }
 
-      const left =
-        this.constantFoldAst(node.left);
+      const left = this.constantFoldAst(node.left);
 
-      const right =
-        this.constantFoldAst(node.right);
+      const right = this.constantFoldAst(node.right);
 
-      if (
-        left.type === "Literal" &&
-        right.type === "Literal"
-      ) {
-        const value =
-          {
-            "+": (a, b) => a + b,
-            "-": (a, b) => a - b,
-            "*": (a, b) => a * b,
-            "/": (a, b) => a / b,
-          }[node.operator](
-            left.value,
-            right.value
-          );
+      if (left.type === "Literal" && right.type === "Literal") {
+        const value = {
+          "+": (a, b) => a + b,
+          "-": (a, b) => a - b,
+          "*": (a, b) => a * b,
+          "/": (a, b) => a / b,
+        }[node.operator](left.value, right.value);
 
         return {
           type: "Literal",
@@ -72,7 +63,7 @@
           value: 4,
         },
       },
-    })
+    }),
   );
 
   //
@@ -127,7 +118,7 @@
       { name: "a", imports: ["b"] },
       { name: "b", imports: [] },
       { name: "unused", imports: [] },
-    ])
+    ]),
   );
 
   //
@@ -149,28 +140,20 @@
         return node;
       }
 
-      if (
-        node.test.type === "Literal"
-      ) {
+      if (node.test.type === "Literal") {
         return node.test.value
           ? node.consequent
-          : node.alternate ?? {
+          : (node.alternate ?? {
               type: "EmptyStatement",
-            };
+            });
       }
 
       return {
         ...node,
-        consequent:
-          this.eliminatePureBranches(
-            node.consequent
-          ),
-        alternate:
-          node.alternate
-            ? this.eliminatePureBranches(
-                node.alternate
-              )
-            : null,
+        consequent: this.eliminatePureBranches(node.consequent),
+        alternate: node.alternate
+          ? this.eliminatePureBranches(node.alternate)
+          : null,
       };
     }
   }
@@ -193,7 +176,7 @@
         type: "ReturnStatement",
         value: 2,
       },
-    })
+    }),
   );
 
   //
@@ -212,8 +195,7 @@
 
     createSourceMapSegments(segments) {
       const lookup = (line, column) => {
-        const candidates =
-          segments[line] ?? [];
+        const candidates = segments[line] ?? [];
 
         let best = null;
 
@@ -228,10 +210,7 @@
         return best
           ? {
               line: best.sourceLine,
-              column:
-                best.sourceColumn +
-                (column -
-                  best.generated),
+              column: best.sourceColumn + (column - best.generated),
             }
           : null;
       };
@@ -284,22 +263,14 @@
       if (node.type === "BinaryExpression") {
         return [
           `${indent}(`,
-          this.prettyPrintAst(
-            node.left,
-            level + 1
-          ),
+          this.prettyPrintAst(node.left, level + 1),
           `${"  ".repeat(level + 1)}${node.operator}`,
-          this.prettyPrintAst(
-            node.right,
-            level + 1
-          ),
+          this.prettyPrintAst(node.right, level + 1),
           `${indent})`,
         ].join("\n");
       }
 
-      throw new Error(
-        `Unknown node: ${node.type}`
-      );
+      throw new Error(`Unknown node: ${node.type}`);
     }
   }
 
@@ -318,7 +289,7 @@
         type: "Literal",
         value: 4,
       },
-    })
+    }),
   );
 
   //

@@ -21,7 +21,7 @@
     *createLazyTodoSequence(
       mapper = (todo) => todo,
       predicate = () => true,
-      limit = Infinity
+      limit = Infinity,
     ) {
       let emitted = 0;
 
@@ -43,23 +43,11 @@
   // Example
   const myTodos = new TodoApp();
 
-  myTodos.addTodo(
-    "Learn JS",
-    "Learning",
-    "3 hours"
-  );
+  myTodos.addTodo("Learn JS", "Learning", "3 hours");
 
-  myTodos.addTodo(
-    "Learn Go",
-    "Learning",
-    "4 hours"
-  );
+  myTodos.addTodo("Learn Go", "Learning", "4 hours");
 
-  myTodos.addTodo(
-    "Gym",
-    "Health",
-    "1 hour"
-  );
+  myTodos.addTodo("Gym", "Health", "1 hour");
 
   console.log([
     ...myTodos.createLazyTodoSequence(
@@ -67,9 +55,8 @@
         name: todo.name,
         duration: todo.time,
       }),
-      (todo) =>
-        todo.category === "Learning",
-      1
+      (todo) => todo.category === "Learning",
+      1,
     ),
   ]);
 
@@ -104,10 +91,7 @@
           return false;
         }
 
-        if (
-          visited.has(left) &&
-          visited.get(left) === right
-        ) {
+        if (visited.has(left) && visited.get(left) === right) {
           return true;
         }
 
@@ -116,21 +100,12 @@
         const leftKeys = Reflect.ownKeys(left);
         const rightKeys = Reflect.ownKeys(right);
 
-        if (
-          leftKeys.length !==
-          rightKeys.length
-        ) {
+        if (leftKeys.length !== rightKeys.length) {
           return false;
         }
 
         for (const key of leftKeys) {
-          if (
-            !rightKeys.includes(key) ||
-            !compare(
-              left[key],
-              right[key]
-            )
-          ) {
+          if (!rightKeys.includes(key) || !compare(left[key], right[key])) {
             return false;
           }
         }
@@ -162,12 +137,7 @@
   first.self = first;
   second.self = second;
 
-  console.log(
-    myTodos.deepStructuralEqual(
-      first,
-      second
-    )
-  );
+  console.log(myTodos.deepStructuralEqual(first, second));
 
   //
 }
@@ -217,25 +187,16 @@
     },
   ]);
 
-  const version =
-    myTodos.createPersistentTodoState(
-      (draft) => {
-        draft[0] = {
-          ...draft[0],
-          completed: true,
-        };
-      }
-    );
+  const version = myTodos.createPersistentTodoState((draft) => {
+    draft[0] = {
+      ...draft[0],
+      completed: true,
+    };
+  });
 
-  console.log(
-    "Previous:",
-    version.previous
-  );
+  console.log("Previous:", version.previous);
 
-  console.log(
-    "Current:",
-    version.current
-  );
+  console.log("Current:", version.current);
 
   //
 }
@@ -260,37 +221,23 @@
       });
     }
 
-    createTransducer(
-      predicate,
-      mapper
-    ) {
+    createTransducer(predicate, mapper) {
       return (reducer) => (accumulator, value) => {
         if (!predicate(value)) {
           return accumulator;
         }
 
-        return reducer(
-          accumulator,
-          mapper(value)
-        );
+        return reducer(accumulator, mapper(value));
       };
     }
 
-    runTransducer(
-      transducer,
-      reducer,
-      initial
-    ) {
-      const composed =
-        transducer(reducer);
+    runTransducer(transducer, reducer, initial) {
+      const composed = transducer(reducer);
 
       let accumulator = initial;
 
       for (const todo of this.todos) {
-        accumulator = composed(
-          accumulator,
-          todo
-        );
+        accumulator = composed(accumulator, todo);
       }
 
       return accumulator;
@@ -300,45 +247,28 @@
   // Example
   const myTodos = new TodoApp();
 
-  myTodos.addTodo(
-    "Learn React",
-    "Learning",
-    "4 hours"
+  myTodos.addTodo("Learn React", "Learning", "4 hours");
+
+  myTodos.addTodo("Gym", "Health", "1 hour");
+
+  myTodos.addTodo("Learn Node", "Learning", "5 hours");
+
+  const transducer = myTodos.createTransducer(
+    (todo) => todo.category === "Learning",
+    (todo) => ({
+      name: todo.name,
+      hours: Number.parseInt(todo.time),
+    }),
   );
 
-  myTodos.addTodo(
-    "Gym",
-    "Health",
-    "1 hour"
+  const result = myTodos.runTransducer(
+    transducer,
+    (acc, item) => {
+      acc.push(item);
+      return acc;
+    },
+    [],
   );
-
-  myTodos.addTodo(
-    "Learn Node",
-    "Learning",
-    "5 hours"
-  );
-
-  const transducer =
-    myTodos.createTransducer(
-      (todo) =>
-        todo.category === "Learning",
-      (todo) => ({
-        name: todo.name,
-        hours: Number.parseInt(
-          todo.time
-        ),
-      })
-    );
-
-  const result =
-    myTodos.runTransducer(
-      transducer,
-      (acc, item) => {
-        acc.push(item);
-        return acc;
-      },
-      []
-    );
 
   console.log(result);
 
@@ -362,42 +292,21 @@
         set: setter,
 
         compose(nextLens) {
-          return this.createNestedLens(
-            getter,
-            setter,
-            nextLens
-          );
+          return this.createNestedLens(getter, setter, nextLens);
         },
       };
     }
 
-    createNestedLens(
-      outerGetter,
-      outerSetter,
-      innerLens
-    ) {
+    createNestedLens(outerGetter, outerSetter, innerLens) {
       return {
-        get: (source) =>
-          innerLens.get(
-            outerGetter(source)
-          ),
+        get: (source) => innerLens.get(outerGetter(source)),
 
         set: (source, value) => {
-          const outerValue =
-            structuredClone(
-              outerGetter(source)
-            );
+          const outerValue = structuredClone(outerGetter(source));
 
-          const updated =
-            innerLens.set(
-              outerValue,
-              value
-            );
+          const updated = innerLens.set(outerValue, value);
 
-          return outerSetter(
-            source,
-            updated
-          );
+          return outerSetter(source, updated);
         },
       };
     }
@@ -415,52 +324,42 @@
     },
   };
 
-  const metadataLens =
-    myTodos.createLens(
-      (source) => source.metadata,
-      (source, value) => ({
-        ...source,
-        metadata: value,
-      })
-    );
+  const metadataLens = myTodos.createLens(
+    (source) => source.metadata,
+    (source, value) => ({
+      ...source,
+      metadata: value,
+    }),
+  );
 
-  const schedulingLens =
-    myTodos.createLens(
-      (source) => source.scheduling,
-      (source, value) => ({
-        ...source,
-        scheduling: value,
-      })
-    );
+  const schedulingLens = myTodos.createLens(
+    (source) => source.scheduling,
+    (source, value) => ({
+      ...source,
+      scheduling: value,
+    }),
+  );
 
-  const priorityLens =
-    myTodos.createLens(
-      (source) => source.priority,
-      (source, value) => ({
-        ...source,
-        priority: value,
-      })
-    );
+  const priorityLens = myTodos.createLens(
+    (source) => source.priority,
+    (source, value) => ({
+      ...source,
+      priority: value,
+    }),
+  );
 
-  const composed =
-    myTodos
-      .createNestedLens(
-        (source) => source.metadata,
-        (source, value) => ({
-          ...source,
-          metadata: value,
-        }),
-        schedulingLens
-      );
+  const composed = myTodos.createNestedLens(
+    (source) => source.metadata,
+    (source, value) => ({
+      ...source,
+      metadata: value,
+    }),
+    schedulingLens,
+  );
 
-  const updated =
-    myTodos
-      .createNestedLens(
-        composed.get,
-        composed.set,
-        priorityLens
-      )
-      .set(todo, 99);
+  const updated = myTodos
+    .createNestedLens(composed.get, composed.set, priorityLens)
+    .set(todo, 99);
 
   console.log(updated);
 

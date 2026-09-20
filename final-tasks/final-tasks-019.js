@@ -20,9 +20,7 @@
             return "number:NaN";
           }
 
-          if (
-            Object.is(input, -0)
-          ) {
+          if (Object.is(input, -0)) {
             return "number:-0";
           }
 
@@ -30,9 +28,7 @@
         }
 
         if (typeof input === "string") {
-          return `string:${JSON.stringify(
-            input
-          )}`;
+          return `string:${JSON.stringify(input)}`;
         }
 
         if (typeof input === "boolean") {
@@ -40,33 +36,17 @@
         }
 
         if (Array.isArray(input)) {
-          return `[${input
-            .map(serialize)
-            .join(",")}]`;
+          return `[${input.map(serialize).join(",")}]`;
         }
 
-        if (
-          typeof input ===
-          "object"
-        ) {
-          return `{${Reflect.ownKeys(
-            input
-          )
+        if (typeof input === "object") {
+          return `{${Reflect.ownKeys(input)
             .sort()
-            .map(
-              (key) =>
-                `${JSON.stringify(
-                  key
-                )}:${serialize(
-                  input[key]
-                )}`
-            )
+            .map((key) => `${JSON.stringify(key)}:${serialize(input[key])}`)
             .join(",")}}`;
         }
 
-        return `${typeof input}:${String(
-          input
-        )}`;
+        return `${typeof input}:${String(input)}`;
       };
 
       return serialize(value);
@@ -74,20 +54,17 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
   console.log(
-    myTodos.createDeterministicSerializer(
-      {
-        b: 2,
-        a: 1,
-        nested: {
-          z: 9,
-          x: 7,
-        },
-      }
-    )
+    myTodos.createDeterministicSerializer({
+      b: 2,
+      a: 1,
+      nested: {
+        z: 9,
+        x: 7,
+      },
+    }),
   );
 
   //
@@ -106,70 +83,47 @@
 
     createDeterministicHash(value) {
       const serialize = (input) => {
-        if (
-          input === null ||
-          typeof input !== "object"
-        ) {
-          return JSON.stringify(
-            input
-          );
+        if (input === null || typeof input !== "object") {
+          return JSON.stringify(input);
         }
 
         if (Array.isArray(input)) {
-          return `[${input
-            .map(serialize)
-            .join(",")}]`;
+          return `[${input.map(serialize).join(",")}]`;
         }
 
         return `{${Object.keys(input)
           .sort()
-          .map(
-            (key) =>
-              `${JSON.stringify(
-                key
-              )}:${serialize(
-                input[key]
-              )}`
-          )
+          .map((key) => `${JSON.stringify(key)}:${serialize(input[key])}`)
           .join(",")}}`;
       };
 
       let hash = 2166136261;
 
-      for (const char of serialize(
-        value
-      )) {
+      for (const char of serialize(value)) {
         hash ^= char.charCodeAt(0);
 
-        hash =
-          Math.imul(
-            hash,
-            16777619
-          );
+        hash = Math.imul(hash, 16777619);
       }
 
-      return (
-        hash >>> 0
-      ).toString(16);
+      return (hash >>> 0).toString(16);
     }
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
   console.log(
     myTodos.createDeterministicHash({
       b: 2,
       a: 1,
-    })
+    }),
   );
 
   console.log(
     myTodos.createDeterministicHash({
       a: 1,
       b: 2,
-    })
+    }),
   );
 
   //
@@ -186,26 +140,18 @@
       this.todos = [];
     }
 
-    createSnapshotComparer(
-      previous,
-      current,
-      path = ""
-    ) {
+    createSnapshotComparer(previous, current, path = "") {
       const changes = [];
 
-      if (
-        previous === current
-      ) {
+      if (previous === current) {
         return changes;
       }
 
       if (
         previous === null ||
         current === null ||
-        typeof previous !==
-          "object" ||
-        typeof current !==
-          "object"
+        typeof previous !== "object" ||
+        typeof current !== "object"
       ) {
         changes.push({
           path,
@@ -223,9 +169,7 @@
       ]);
 
       for (const key of keys) {
-        const nextPath = path
-          ? `${path}.${String(key)}`
-          : String(key);
+        const nextPath = path ? `${path}.${String(key)}` : String(key);
 
         if (!(key in current)) {
           changes.push({
@@ -248,11 +192,7 @@
         }
 
         changes.push(
-          ...this.createSnapshotComparer(
-            previous[key],
-            current[key],
-            nextPath
-          )
+          ...this.createSnapshotComparer(previous[key], current[key], nextPath),
         );
       }
 
@@ -261,8 +201,7 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
   console.log(
     myTodos.createSnapshotComparer(
@@ -278,8 +217,8 @@
           role: "admin",
           active: true,
         },
-      }
-    )
+      },
+    ),
   );
 
   //
@@ -296,10 +235,7 @@
       this.todos = [];
     }
 
-    createFiniteStateMachine(
-      initial,
-      transitions
-    ) {
+    createFiniteStateMachine(initial, transitions) {
       let state = initial;
 
       return {
@@ -308,13 +244,10 @@
         },
 
         transition(event) {
-          const next =
-            transitions[state]?.[event];
+          const next = transitions[state]?.[event];
 
           if (!next) {
-            throw new Error(
-              `Invalid transition: ${state} -> ${event}`
-            );
+            throw new Error(`Invalid transition: ${state} -> ${event}`);
           }
 
           state = next;
@@ -326,32 +259,23 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
-  const machine =
-    myTodos.createFiniteStateMachine(
-      "pending",
-      {
-        pending: {
-          start: "running",
-        },
-        running: {
-          complete: "completed",
-          cancel: "cancelled",
-        },
-        completed: {},
-        cancelled: {},
-      }
-    );
+  const machine = myTodos.createFiniteStateMachine("pending", {
+    pending: {
+      start: "running",
+    },
+    running: {
+      complete: "completed",
+      cancel: "cancelled",
+    },
+    completed: {},
+    cancelled: {},
+  });
 
-  console.log(
-    machine.transition("start")
-  );
+  console.log(machine.transition("start"));
 
-  console.log(
-    machine.transition("complete")
-  );
+  console.log(machine.transition("complete"));
 
   //
 }
@@ -367,80 +291,47 @@
       this.todos = [];
     }
 
-    async createWorkflowEngine(
-      steps
-    ) {
-      const map = new Map(
-        steps.map((step) => [
-          step.name,
-          step,
-        ])
-      );
+    async createWorkflowEngine(steps) {
+      const map = new Map(steps.map((step) => [step.name, step]));
 
       const completed = new Set();
       const results = new Map();
 
-      while (
-        completed.size <
-        steps.length
-      ) {
+      while (completed.size < steps.length) {
         const ready = steps.filter(
           (step) =>
-            !completed.has(
-              step.name
-            ) &&
-            step.dependencies.every(
-              (dependency) =>
-                completed.has(
-                  dependency
-                )
-            )
+            !completed.has(step.name) &&
+            step.dependencies.every((dependency) => completed.has(dependency)),
         );
 
         if (!ready.length) {
-          throw new Error(
-            "Workflow contains a dependency cycle"
-          );
+          throw new Error("Workflow contains a dependency cycle");
         }
 
-        const batch =
-          await Promise.all(
-            ready.map(
-              async (step) => {
-                const result =
-                  await step.run(
-                    results
-                  );
+        const batch = await Promise.all(
+          ready.map(async (step) => {
+            const result = await step.run(results);
 
-                return {
-                  name: step.name,
-                  result,
-                };
-              }
-            )
-          );
+            return {
+              name: step.name,
+              result,
+            };
+          }),
+        );
 
         for (const item of batch) {
-          completed.add(
-            item.name
-          );
+          completed.add(item.name);
 
-          results.set(
-            item.name,
-            item.result
-          );
+          results.set(item.name, item.result);
         }
       }
 
-      return Object.fromEntries(
-        results
-      );
+      return Object.fromEntries(results);
     }
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
   myTodos
     .createWorkflowEngine([
@@ -451,20 +342,13 @@
       },
       {
         name: "design",
-        dependencies: [
-          "research",
-        ],
+        dependencies: ["research"],
         run: async () => "design-done",
       },
       {
         name: "implementation",
-        dependencies: [
-          "design",
-        ],
-        run: async (results) =>
-          `${results.get(
-            "design"
-          )}: implementation-done`,
+        dependencies: ["design"],
+        run: async (results) => `${results.get("design")}: implementation-done`,
       },
     ])
     .then(console.log);

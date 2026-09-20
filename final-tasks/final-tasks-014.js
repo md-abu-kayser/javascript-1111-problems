@@ -21,16 +21,8 @@
     }
 
     mergeVectorClock(remoteClock) {
-      for (const [
-        node,
-        value,
-      ] of Object.entries(
-        remoteClock
-      )) {
-        this.clock[node] = Math.max(
-          this.clock[node] ?? 0,
-          value
-        );
+      for (const [node, value] of Object.entries(remoteClock)) {
+        this.clock[node] = Math.max(this.clock[node] ?? 0, value);
       }
 
       this.clock[this.nodeId]++;
@@ -41,17 +33,14 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp("node-a");
+  const myTodos = new TodoApp("node-a");
 
-  console.log(
-    myTodos.createVectorClock()
-  );
+  console.log(myTodos.createVectorClock());
 
   console.log(
     myTodos.mergeVectorClock({
       "node-b": 3,
-    })
+    }),
   );
 
   //
@@ -73,38 +62,23 @@
       let hash = 0;
 
       for (const char of String(value)) {
-        hash =
-          (hash * 31 +
-            char.charCodeAt(0)) >>>
-          0;
+        hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
       }
 
       return hash;
     }
 
     addNode(node, replicas = 3) {
-      this.nodes.set(
-        node,
-        replicas
-      );
+      this.nodes.set(node, replicas);
 
-      for (
-        let i = 0;
-        i < replicas;
-        i++
-      ) {
+      for (let i = 0; i < replicas; i++) {
         this.tokens.push({
-          hash: this.hash(
-            `${node}:${i}`
-          ),
+          hash: this.hash(`${node}:${i}`),
           node,
         });
       }
 
-      this.tokens.sort(
-        (a, b) =>
-          a.hash - b.hash
-      );
+      this.tokens.sort((a, b) => a.hash - b.hash);
     }
 
     locate(key) {
@@ -115,36 +89,22 @@
       const hash = this.hash(key);
 
       const token =
-        this.tokens.find(
-          (item) =>
-            item.hash >= hash
-        ) ?? this.tokens[0];
+        this.tokens.find((item) => item.hash >= hash) ?? this.tokens[0];
 
       return token.node;
     }
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
-  myTodos.addNode(
-    "worker-a"
-  );
+  myTodos.addNode("worker-a");
 
-  myTodos.addNode(
-    "worker-b"
-  );
+  myTodos.addNode("worker-b");
 
-  myTodos.addNode(
-    "worker-c"
-  );
+  myTodos.addNode("worker-c");
 
-  console.log(
-    myTodos.locate(
-      "todo-123"
-    )
-  );
+  console.log(myTodos.locate("todo-123"));
 
   //
 }
@@ -161,54 +121,36 @@
       this.requiredAcks = requiredAcks;
     }
 
-    async createQuorumCoordinator(
-      replicas,
-      command
-    ) {
-      const acknowledgements =
-        await Promise.all(
-          replicas.map(
-            async (replica) => {
-              try {
-                return await replica(
-                  command
-                );
-              } catch {
-                return false;
-              }
-            }
-          )
-        );
+    async createQuorumCoordinator(replicas, command) {
+      const acknowledgements = await Promise.all(
+        replicas.map(async (replica) => {
+          try {
+            return await replica(command);
+          } catch {
+            return false;
+          }
+        }),
+      );
 
-      const successful =
-        acknowledgements.filter(
-          Boolean
-        ).length;
+      const successful = acknowledgements.filter(Boolean).length;
 
       return {
-        committed:
-          successful >=
-          this.requiredAcks,
+        committed: successful >= this.requiredAcks,
         acknowledgements: successful,
       };
     }
   }
 
   // Example
-  const myTodos =
-    new TodoApp(2);
+  const myTodos = new TodoApp(2);
 
   myTodos
     .createQuorumCoordinator(
-      [
-        async () => true,
-        async () => true,
-        async () => false,
-      ],
+      [async () => true, async () => true, async () => false],
       {
         type: "ADD",
         name: "Deploy",
-      }
+      },
     )
     .then(console.log);
 
@@ -226,48 +168,27 @@
       this.todos = [];
     }
 
-    createGossipStateMerger(
-      localState,
-      remoteState
-    ) {
+    createGossipStateMerger(localState, remoteState) {
       const merged = new Map();
 
-      for (const todo of [
-        ...localState,
-        ...remoteState,
-      ]) {
-        const existing =
-          merged.get(todo.name);
+      for (const todo of [...localState, ...remoteState]) {
+        const existing = merged.get(todo.name);
 
         if (!existing) {
-          merged.set(
-            todo.name,
-            structuredClone(todo)
-          );
+          merged.set(todo.name, structuredClone(todo));
+          continue;
+        }
+
+        if (todo.updatedAt > existing.updatedAt) {
+          merged.set(todo.name, structuredClone(todo));
           continue;
         }
 
         if (
-          todo.updatedAt >
-          existing.updatedAt
+          todo.updatedAt === existing.updatedAt &&
+          todo.nodeId > existing.nodeId
         ) {
-          merged.set(
-            todo.name,
-            structuredClone(todo)
-          );
-          continue;
-        }
-
-        if (
-          todo.updatedAt ===
-            existing.updatedAt &&
-          todo.nodeId >
-            existing.nodeId
-        ) {
-          merged.set(
-            todo.name,
-            structuredClone(todo)
-          );
+          merged.set(todo.name, structuredClone(todo));
         }
       }
 
@@ -276,28 +197,26 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
-  const merged =
-    myTodos.createGossipStateMerger(
-      [
-        {
-          name: "API",
-          completed: false,
-          updatedAt: 10,
-          nodeId: "a",
-        },
-      ],
-      [
-        {
-          name: "API",
-          completed: true,
-          updatedAt: 11,
-          nodeId: "b",
-        },
-      ]
-    );
+  const merged = myTodos.createGossipStateMerger(
+    [
+      {
+        name: "API",
+        completed: false,
+        updatedAt: 10,
+        nodeId: "a",
+      },
+    ],
+    [
+      {
+        name: "API",
+        completed: true,
+        updatedAt: 11,
+        nodeId: "b",
+      },
+    ],
+  );
 
   console.log(merged);
 
@@ -316,9 +235,7 @@
     }
 
     createLeaderElection(workers) {
-      const healthy = workers.filter(
-        (worker) => worker.healthy
-      );
+      const healthy = workers.filter((worker) => worker.healthy);
 
       if (!healthy.length) {
         return null;
@@ -326,10 +243,7 @@
 
       healthy.sort(
         (a, b) =>
-          b.priority - a.priority ||
-          String(a.id).localeCompare(
-            String(b.id)
-          )
+          b.priority - a.priority || String(a.id).localeCompare(String(b.id)),
       );
 
       return healthy[0];
@@ -337,8 +251,7 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
   console.log(
     myTodos.createLeaderElection([
@@ -357,7 +270,7 @@
         priority: 10,
         healthy: false,
       },
-    ])
+    ]),
   );
 
   //

@@ -15,68 +15,45 @@
     createReactiveState() {
       const track = (target, key) => {
         if (!this.dependencies.has(key)) {
-          this.dependencies.set(
-            key,
-            new Set()
-          );
+          this.dependencies.set(key, new Set());
         }
 
         for (const effect of this.effects) {
-          this.dependencies
-            .get(key)
-            .add(effect);
+          this.dependencies.get(key).add(effect);
         }
       };
 
       const trigger = (key) => {
-        const effects =
-          this.dependencies.get(key);
+        const effects = this.dependencies.get(key);
 
         if (!effects) {
           return;
         }
 
-        for (const effect of [
-          ...effects,
-        ]) {
+        for (const effect of [...effects]) {
           effect();
         }
       };
 
-      const reactive = new Proxy(
-        this.state,
-        {
-          get: (target, key, receiver) => {
-            track(target, key);
+      const reactive = new Proxy(this.state, {
+        get: (target, key, receiver) => {
+          track(target, key);
 
-            return Reflect.get(
-              target,
-              key,
-              receiver
-            );
-          },
+          return Reflect.get(target, key, receiver);
+        },
 
-          set: (target, key, value) => {
-            const changed =
-              !Object.is(
-                target[key],
-                value
-              );
+        set: (target, key, value) => {
+          const changed = !Object.is(target[key], value);
 
-            const result = Reflect.set(
-              target,
-              key,
-              value
-            );
+          const result = Reflect.set(target, key, value);
 
-            if (changed) {
-              trigger(key);
-            }
+          if (changed) {
+            trigger(key);
+          }
 
-            return result;
-          },
-        }
-      );
+          return result;
+        },
+      });
 
       return {
         state: reactive,
@@ -94,20 +71,15 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp({
-      active: 0,
-      completed: 0,
-    });
+  const myTodos = new TodoApp({
+    active: 0,
+    completed: 0,
+  });
 
-  const reactive =
-    myTodos.createReactiveState();
+  const reactive = myTodos.createReactiveState();
 
   reactive.effect(() => {
-    console.log(
-      "Active:",
-      reactive.state.active
-    );
+    console.log("Active:", reactive.state.active);
   });
 
   reactive.state.active = 4;
@@ -126,23 +98,10 @@
       this.todos = [];
     }
 
-    diffTodoSnapshots(
-      previous,
-      current
-    ) {
-      const oldMap = new Map(
-        previous.map((todo) => [
-          todo.name,
-          todo,
-        ])
-      );
+    diffTodoSnapshots(previous, current) {
+      const oldMap = new Map(previous.map((todo) => [todo.name, todo]));
 
-      const newMap = new Map(
-        current.map((todo) => [
-          todo.name,
-          todo,
-        ])
-      );
+      const newMap = new Map(current.map((todo) => [todo.name, todo]));
 
       const operations = [];
 
@@ -164,20 +123,12 @@
           continue;
         }
 
-        const oldTodo =
-          oldMap.get(newTodo.name);
+        const oldTodo = oldMap.get(newTodo.name);
 
         const changes = {};
 
-        for (const key of Object.keys(
-          newTodo
-        )) {
-          if (
-            !Object.is(
-              oldTodo[key],
-              newTodo[key]
-            )
-          ) {
+        for (const key of Object.keys(newTodo)) {
+          if (!Object.is(oldTodo[key], newTodo[key])) {
             changes[key] = {
               from: oldTodo[key],
               to: newTodo[key],
@@ -231,12 +182,7 @@
     },
   ];
 
-  console.log(
-    myTodos.diffTodoSnapshots(
-      previous,
-      current
-    )
-  );
+  console.log(myTodos.diffTodoSnapshots(previous, current));
 
   //
 }
@@ -273,9 +219,7 @@
         next(value) {
           if (closed) return;
 
-          for (const observer of [
-            ...subscribers,
-          ]) {
+          for (const observer of [...subscribers]) {
             observer.next?.(value);
           }
         },
@@ -285,9 +229,7 @@
 
           closed = true;
 
-          for (const observer of [
-            ...subscribers,
-          ]) {
+          for (const observer of [...subscribers]) {
             observer.error?.(error);
           }
 
@@ -299,9 +241,7 @@
 
           closed = true;
 
-          for (const observer of [
-            ...subscribers,
-          ]) {
+          for (const observer of [...subscribers]) {
             observer.complete?.();
           }
 
@@ -314,17 +254,13 @@
   // Example
   const myTodos = new TodoApp();
 
-  const stream =
-    myTodos.createObservableTodoStream();
+  const stream = myTodos.createObservableTodoStream();
 
-  const unsubscribe =
-    stream.subscribe({
-      next: (todo) =>
-        console.log("Next:", todo),
+  const unsubscribe = stream.subscribe({
+    next: (todo) => console.log("Next:", todo),
 
-      complete: () =>
-        console.log("Completed"),
-    });
+    complete: () => console.log("Completed"),
+  });
 
   stream.next({
     name: "Learn Streams",
@@ -357,13 +293,8 @@
 
       let scheduled = false;
 
-      const schedule = (
-        task,
-        priority = 1
-      ) => {
-        queues
-          .get(priority)
-          .push(task);
+      const schedule = (task, priority = 1) => {
+        queues.get(priority).push(task);
 
         if (!scheduled) {
           scheduled = true;
@@ -378,11 +309,7 @@
         while (budget-- > 0) {
           let task;
 
-          for (const queue of [
-            queues.get(2),
-            queues.get(1),
-            queues.get(0),
-          ]) {
+          for (const queue of [queues.get(2), queues.get(1), queues.get(0)]) {
             if (queue.length) {
               task = queue.shift();
               break;
@@ -409,26 +336,13 @@
   // Example
   const myTodos = new TodoApp();
 
-  const scheduler =
-    myTodos.createScheduler();
+  const scheduler = myTodos.createScheduler();
 
-  scheduler.schedule(
-    () =>
-      console.log("normal"),
-    1
-  );
+  scheduler.schedule(() => console.log("normal"), 1);
 
-  scheduler.schedule(
-    () =>
-      console.log("urgent"),
-    2
-  );
+  scheduler.schedule(() => console.log("urgent"), 2);
 
-  scheduler.schedule(
-    () =>
-      console.log("background"),
-    0
-  );
+  scheduler.schedule(() => console.log("background"), 0);
 
   //
 }
@@ -444,11 +358,7 @@
       this.todos = [];
     }
 
-    createVirtualNodeDiff(
-      oldNode,
-      newNode,
-      path = []
-    ) {
+    createVirtualNodeDiff(oldNode, newNode, path = []) {
       const patches = [];
 
       if (oldNode == null) {
@@ -470,9 +380,7 @@
         return patches;
       }
 
-      if (
-        oldNode.type !== newNode.type
-      ) {
+      if (oldNode.type !== newNode.type) {
         patches.push({
           type: "replace",
           path,
@@ -482,11 +390,9 @@
         return patches;
       }
 
-      const oldProps =
-        oldNode.props ?? {};
+      const oldProps = oldNode.props ?? {};
 
-      const newProps =
-        newNode.props ?? {};
+      const newProps = newNode.props ?? {};
 
       const propKeys = new Set([
         ...Reflect.ownKeys(oldProps),
@@ -494,12 +400,7 @@
       ]);
 
       for (const key of propKeys) {
-        if (
-          !Object.is(
-            oldProps[key],
-            newProps[key]
-          )
-        ) {
+        if (!Object.is(oldProps[key], newProps[key])) {
           patches.push({
             type: "set-prop",
             path,
@@ -509,24 +410,18 @@
         }
       }
 
-      const oldChildren =
-        oldNode.children ?? [];
+      const oldChildren = oldNode.children ?? [];
 
-      const newChildren =
-        newNode.children ?? [];
+      const newChildren = newNode.children ?? [];
 
-      const length = Math.max(
-        oldChildren.length,
-        newChildren.length
-      );
+      const length = Math.max(oldChildren.length, newChildren.length);
 
       for (let i = 0; i < length; i++) {
         patches.push(
-          ...this.createVirtualNodeDiff(
-            oldChildren[i],
-            newChildren[i],
-            [...path, i]
-          )
+          ...this.createVirtualNodeDiff(oldChildren[i], newChildren[i], [
+            ...path,
+            i,
+          ]),
         );
       }
 
@@ -567,12 +462,7 @@
     ],
   };
 
-  console.log(
-    myTodos.createVirtualNodeDiff(
-      oldTree,
-      newTree
-    )
-  );
+  console.log(myTodos.createVirtualNodeDiff(oldTree, newTree));
 
   //
 }

@@ -15,19 +15,12 @@
           return value.map(redact);
         }
 
-        if (
-          value &&
-          typeof value === "object"
-        ) {
+        if (value && typeof value === "object") {
           return Object.fromEntries(
-            Object.entries(value).map(
-              ([key, child]) => [
-                key,
-                secretFields.has(key)
-                  ? "[REDACTED]"
-                  : redact(child),
-              ]
-            )
+            Object.entries(value).map(([key, child]) => [
+              key,
+              secretFields.has(key) ? "[REDACTED]" : redact(child),
+            ]),
           );
         }
 
@@ -35,12 +28,7 @@
       };
 
       return {
-        log: (event) =>
-          console.log(
-            JSON.stringify(
-              redact(event)
-            )
-          ),
+        log: (event) => console.log(JSON.stringify(redact(event))),
       };
     }
   }
@@ -48,14 +36,9 @@
   // Example
   const myTodos = new TodoApp();
 
-  const logger =
-    myTodos.createRedactingLogger(
-      new Set([
-        "password",
-        "token",
-        "secret",
-      ])
-    );
+  const logger = myTodos.createRedactingLogger(
+    new Set(["password", "token", "secret"]),
+  );
 
   logger.log({
     action: "login",
@@ -80,9 +63,7 @@
     }
 
     createTraceContext(parent = null) {
-      const traceId =
-        parent?.traceId ??
-        crypto.randomUUID();
+      const traceId = parent?.traceId ?? crypto.randomUUID();
 
       return {
         traceId,
@@ -91,8 +72,7 @@
           return {
             traceId,
             spanId: crypto.randomUUID(),
-            parentSpanId:
-              parent?.spanId ?? null,
+            parentSpanId: parent?.spanId ?? null,
             name,
             startedAt: Date.now(),
           };
@@ -104,8 +84,7 @@
   // Example
   const myTodos = new TodoApp();
 
-  const root =
-    myTodos.createTraceContext();
+  const root = myTodos.createTraceContext();
 
   const span = root.startSpan("query");
 
@@ -126,23 +105,14 @@
     }
 
     createHistogram(bounds) {
-      const counts = new Array(
-        bounds.length + 1
-      ).fill(0);
+      const counts = new Array(bounds.length + 1).fill(0);
 
       let total = 0;
 
       const observe = (value) => {
-        const index =
-          bounds.findIndex(
-            (bound) => value <= bound
-          );
+        const index = bounds.findIndex((bound) => value <= bound);
 
-        counts[
-          index === -1
-            ? counts.length - 1
-            : index
-        ]++;
+        counts[index === -1 ? counts.length - 1 : index]++;
 
         total++;
       };
@@ -155,10 +125,7 @@
           seen += counts[i];
 
           if (seen >= target) {
-            return (
-              bounds[i] ??
-              Infinity
-            );
+            return bounds[i] ?? Infinity;
           }
         }
 
@@ -172,18 +139,11 @@
   // Example
   const myTodos = new TodoApp();
 
-  const histogram =
-    myTodos.createHistogram([
-      10, 25, 50, 100,
-    ]);
+  const histogram = myTodos.createHistogram([10, 25, 50, 100]);
 
-  [8, 15, 30, 40, 90].forEach(
-    histogram.observe
-  );
+  [8, 15, 30, 40, 90].forEach(histogram.observe);
 
-  console.log(
-    histogram.percentile(0.95)
-  );
+  console.log(histogram.percentile(0.95));
 
   //
 }
@@ -199,10 +159,7 @@
       this.todos = [];
     }
 
-    createLatencySLO(
-      thresholdMs,
-      target = 0.99
-    ) {
+    createLatencySLO(thresholdMs, target = 0.99) {
       let total = 0;
       let good = 0;
 
@@ -216,19 +173,11 @@
         },
 
         report: () => {
-          const successRate =
-            total === 0
-              ? 1
-              : good / total;
+          const successRate = total === 0 ? 1 : good / total;
 
           return {
             successRate,
-            errorBudget:
-              Math.max(
-                0,
-                successRate -
-                  (1 - target)
-              ),
+            errorBudget: Math.max(0, successRate - (1 - target)),
           };
         },
       };
@@ -238,15 +187,9 @@
   // Example
   const myTodos = new TodoApp();
 
-  const slo =
-    myTodos.createLatencySLO(
-      200,
-      0.99
-    );
+  const slo = myTodos.createLatencySLO(200, 0.99);
 
-  [100, 120, 210, 90].forEach(
-    slo.observe
-  );
+  [100, 120, 210, 90].forEach(slo.observe);
 
   console.log(slo.report());
 
@@ -264,25 +207,17 @@
       this.todos = [];
     }
 
-    createBatchLogger(
-      maxBatch,
-      flush
-    ) {
+    createBatchLogger(maxBatch, flush) {
       let buffer = [];
       let timer = null;
 
       const write = (event) => {
         buffer.push(event);
 
-        if (
-          buffer.length >= maxBatch
-        ) {
+        if (buffer.length >= maxBatch) {
           flushNow();
         } else if (!timer) {
-          timer = setTimeout(
-            flushNow,
-            500
-          );
+          timer = setTimeout(flushNow, 500);
         }
       };
 
@@ -305,11 +240,7 @@
   // Example
   const myTodos = new TodoApp();
 
-  const logger =
-    myTodos.createBatchLogger(
-      3,
-      (batch) => console.log(batch)
-    );
+  const logger = myTodos.createBatchLogger(3, (batch) => console.log(batch));
 
   logger.write({ id: 1 });
   logger.write({ id: 2 });

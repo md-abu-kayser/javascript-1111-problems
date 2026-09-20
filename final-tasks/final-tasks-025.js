@@ -9,11 +9,7 @@
       this.todos = [];
     }
 
-    async *createAsyncMapPipeline(
-      source,
-      mapper,
-      concurrency = 2
-    ) {
+    async *createAsyncMapPipeline(source, mapper, concurrency = 2) {
       const pending = new Map();
       let index = 0;
       let nextYield = 0;
@@ -21,16 +17,10 @@
       for await (const item of source) {
         const current = index++;
 
-        pending.set(
-          current,
-          Promise.resolve(
-            mapper(item, current)
-          )
-        );
+        pending.set(current, Promise.resolve(mapper(item, current)));
 
         if (pending.size >= concurrency) {
-          const value =
-            await pending.get(nextYield);
+          const value = await pending.get(nextYield);
 
           pending.delete(nextYield);
           nextYield++;
@@ -40,8 +30,7 @@
       }
 
       while (pending.size) {
-        const value =
-          await pending.get(nextYield);
+        const value = await pending.get(nextYield);
 
         pending.delete(nextYield);
         nextYield++;
@@ -61,13 +50,11 @@
   }
 
   (async () => {
-    for await (
-      const value of myTodos.createAsyncMapPipeline(
-        source(),
-        async (n) => n * 10,
-        2
-      )
-    ) {
+    for await (const value of myTodos.createAsyncMapPipeline(
+      source(),
+      async (n) => n * 10,
+      2,
+    )) {
       console.log(value);
     }
   })();
@@ -92,19 +79,11 @@
       const consumers = [];
 
       const flush = () => {
-        while (
-          consumers.length &&
-          buffer.length
-        ) {
-          consumers.shift().resolve(
-            buffer.shift()
-          );
+        while (consumers.length && buffer.length) {
+          consumers.shift().resolve(buffer.shift());
         }
 
-        while (
-          producers.length &&
-          buffer.length < capacity
-        ) {
+        while (producers.length && buffer.length < capacity) {
           const producer = producers.shift();
           buffer.push(producer.value);
           producer.resolve();
@@ -113,9 +92,7 @@
 
       return {
         push(value) {
-          if (
-            buffer.length < capacity
-          ) {
+          if (buffer.length < capacity) {
             buffer.push(value);
             flush();
             return Promise.resolve();
@@ -146,13 +123,10 @@
 
   // Example
   const myTodos = new TodoApp();
-  const buffer =
-    myTodos.createBackpressureBuffer(1);
+  const buffer = myTodos.createBackpressureBuffer(1);
 
   buffer.push("first");
-  buffer.push("second").then(() =>
-    console.log("producer resumed")
-  );
+  buffer.push("second").then(() => console.log("producer resumed"));
 
   buffer.pull().then(console.log);
   buffer.pull().then(console.log);
@@ -172,36 +146,28 @@
     }
 
     async *mergeAsyncStreams(streams) {
-      const states = streams.map(
-        (stream, index) => ({
-          index,
-          iterator: stream[Symbol.asyncIterator](),
-          promise: null,
-        })
-      );
+      const states = streams.map((stream, index) => ({
+        index,
+        iterator: stream[Symbol.asyncIterator](),
+        promise: null,
+      }));
 
       const start = (state) => {
-        state.promise = state.iterator
-          .next()
-          .then((result) => ({
-            state,
-            result,
-          }));
+        state.promise = state.iterator.next().then((result) => ({
+          state,
+          result,
+        }));
       };
 
       states.forEach(start);
 
       while (states.length) {
-        const { state, result } =
-          await Promise.race(
-            states.map(
-              (item) => item.promise
-            )
-          );
+        const { state, result } = await Promise.race(
+          states.map((item) => item.promise),
+        );
 
         if (result.done) {
-          const index =
-            states.indexOf(state);
+          const index = states.indexOf(state);
 
           states.splice(index, 1);
           continue;
@@ -229,12 +195,7 @@
   }
 
   (async () => {
-    for await (
-      const value of myTodos.mergeAsyncStreams([
-        a(),
-        b(),
-      ])
-    ) {
+    for await (const value of myTodos.mergeAsyncStreams([a(), b()])) {
       console.log(value);
     }
   })();
@@ -254,27 +215,18 @@
     }
 
     async *zipAsyncStreams(streams) {
-      const iterators = streams.map(
-        (stream) =>
-          stream[Symbol.asyncIterator]()
-      );
+      const iterators = streams.map((stream) => stream[Symbol.asyncIterator]());
 
       while (true) {
         const results = await Promise.all(
-          iterators.map((iterator) =>
-            iterator.next()
-          )
+          iterators.map((iterator) => iterator.next()),
         );
 
-        if (
-          results.some((result) => result.done)
-        ) {
+        if (results.some((result) => result.done)) {
           return;
         }
 
-        yield results.map(
-          (result) => result.value
-        );
+        yield results.map((result) => result.value);
       }
     }
   }
@@ -294,12 +246,7 @@
   }
 
   (async () => {
-    for await (
-      const pair of myTodos.zipAsyncStreams([
-        left(),
-        right(),
-      ])
-    ) {
+    for await (const pair of myTodos.zipAsyncStreams([left(), right()])) {
       console.log(pair);
     }
   })();
@@ -318,17 +265,11 @@
       this.todos = [];
     }
 
-    createTimeWindowStream(
-      events,
-      windowMs
-    ) {
+    createTimeWindowStream(events, windowMs) {
       const windows = [];
 
       for (const event of events) {
-        const start =
-          Math.floor(
-            event.timestamp / windowMs
-          ) * windowMs;
+        const start = Math.floor(event.timestamp / windowMs) * windowMs;
 
         let window = windows.at(-1);
 
@@ -359,8 +300,8 @@
         { timestamp: 250, id: "B" },
         { timestamp: 1200, id: "C" },
       ],
-      500
-    )
+      500,
+    ),
   );
 
   //

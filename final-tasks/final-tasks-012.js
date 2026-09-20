@@ -24,8 +24,7 @@
       ];
 
       while (position < source.length) {
-        const remaining =
-          source.slice(position);
+        const remaining = source.slice(position);
 
         if (/^\s/.test(remaining)) {
           position++;
@@ -35,8 +34,7 @@
         let matched = false;
 
         for (const [type, regex] of patterns) {
-          const match =
-            remaining.match(regex);
+          const match = remaining.match(regex);
 
           if (match) {
             tokens.push({
@@ -52,9 +50,7 @@
         }
 
         if (!matched) {
-          throw new Error(
-            `Unexpected character at ${position}`
-          );
+          throw new Error(`Unexpected character at ${position}`);
         }
       }
 
@@ -65,11 +61,7 @@
   // Example
   const myTodos = new TodoApp();
 
-  console.log(
-    myTodos.createLexer(
-      'task = add("JS", 4 * 2)'
-    )
-  );
+  console.log(myTodos.createLexer('task = add("JS", 4 * 2)'));
 
   //
 }
@@ -88,24 +80,16 @@
     createPrattParser(tokens) {
       let position = 0;
 
-      const peek = () =>
-        tokens[position];
+      const peek = () => tokens[position];
 
-      const consume = () =>
-        tokens[position++];
+      const consume = () => tokens[position++];
 
       const bindingPower = (operator) => {
-        if (
-          operator === "*" ||
-          operator === "/"
-        ) {
+        if (operator === "*" || operator === "/") {
           return 20;
         }
 
-        if (
-          operator === "+" ||
-          operator === "-"
-        ) {
+        if (operator === "+" || operator === "-") {
           return 10;
         }
 
@@ -116,9 +100,7 @@
         let token = consume();
 
         if (!token) {
-          throw new Error(
-            "Unexpected end of input"
-          );
+          throw new Error("Unexpected end of input");
         }
 
         let left;
@@ -131,32 +113,16 @@
         } else if (token.type === "LPAREN") {
           left = parse(0);
 
-          if (
-            consume()?.type !==
-            "RPAREN"
-          ) {
-            throw new Error(
-              "Expected ')'"
-            );
+          if (consume()?.type !== "RPAREN") {
+            throw new Error("Expected ')'");
           }
         } else {
-          throw new Error(
-            `Unexpected token ${token.value}`
-          );
+          throw new Error(`Unexpected token ${token.value}`);
         }
 
-        while (
-          peek() &&
-          bindingPower(
-            peek().value
-          ) > minimumBindingPower
-        ) {
+        while (peek() && bindingPower(peek().value) > minimumBindingPower) {
           const operator = consume();
-          const right = parse(
-            bindingPower(
-              operator.value
-            )
-          );
+          const right = parse(bindingPower(operator.value));
 
           left = {
             type: "BinaryExpression",
@@ -199,11 +165,7 @@
     },
   ];
 
-  console.log(
-    myTodos.createPrattParser(
-      tokens
-    )
-  );
+  console.log(myTodos.createPrattParser(tokens));
 
   //
 }
@@ -224,15 +186,10 @@
         return node.value;
       }
 
-      if (
-        node.type ===
-        "BinaryExpression"
-      ) {
-        const left =
-          this.evaluateAst(node.left);
+      if (node.type === "BinaryExpression") {
+        const left = this.evaluateAst(node.left);
 
-        const right =
-          this.evaluateAst(node.right);
+        const right = this.evaluateAst(node.right);
 
         switch (node.operator) {
           case "+":
@@ -248,15 +205,11 @@
             return left / right;
 
           default:
-            throw new Error(
-              `Unsupported operator: ${node.operator}`
-            );
+            throw new Error(`Unsupported operator: ${node.operator}`);
         }
       }
 
-      throw new Error(
-        `Unknown AST node: ${node.type}`
-      );
+      throw new Error(`Unknown AST node: ${node.type}`);
     }
   }
 
@@ -284,9 +237,7 @@
     },
   };
 
-  console.log(
-    myTodos.evaluateAst(ast)
-  );
+  console.log(myTodos.evaluateAst(ast));
 
   //
 }
@@ -310,9 +261,7 @@
       };
 
       const compile = (current) => {
-        if (
-          current.type === "Literal"
-        ) {
+        if (current.type === "Literal") {
           emit({
             op: "PUSH",
             value: current.value,
@@ -332,9 +281,7 @@
         }[current.operator];
 
         if (!opcode) {
-          throw new Error(
-            "Unsupported operator"
-          );
+          throw new Error("Unsupported operator");
         }
 
         emit({
@@ -363,7 +310,7 @@
         type: "Literal",
         value: 8,
       },
-    })
+    }),
   );
 
   //
@@ -418,16 +365,12 @@
           }
 
           default:
-            throw new Error(
-              `Unknown opcode: ${instruction.op}`
-            );
+            throw new Error(`Unknown opcode: ${instruction.op}`);
         }
       }
 
       if (stack.length !== 1) {
-        throw new Error(
-          "Invalid bytecode stack state"
-        );
+        throw new Error("Invalid bytecode stack state");
       }
 
       return stack[0];
@@ -451,9 +394,7 @@
     },
   ];
 
-  console.log(
-    myTodos.runBytecode(bytecode)
-  );
+  console.log(myTodos.runBytecode(bytecode));
 
   //
 }

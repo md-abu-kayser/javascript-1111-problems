@@ -9,11 +9,7 @@
       this.todos = [];
     }
 
-    estimateIndexSelectivity(
-      totalRows,
-      distinctValues,
-      predicates
-    ) {
+    estimateIndexSelectivity(totalRows, distinctValues, predicates) {
       return predicates
         .map((predicate) => ({
           field: predicate.field,
@@ -21,17 +17,10 @@
             1 /
             Math.max(
               1,
-              Math.min(
-                totalRows,
-                distinctValues[predicate.field] ?? 1
-              )
+              Math.min(totalRows, distinctValues[predicate.field] ?? 1),
             ),
         }))
-        .sort(
-          (a, b) =>
-            a.selectivity -
-            b.selectivity
-        );
+        .sort((a, b) => a.selectivity - b.selectivity);
     }
   }
 
@@ -46,12 +35,8 @@
         status: 3,
         owner: 500,
       },
-      [
-        { field: "category" },
-        { field: "owner" },
-        { field: "status" },
-      ]
-    )
+      [{ field: "category" }, { field: "owner" }, { field: "status" }],
+    ),
   );
 
   //
@@ -72,18 +57,12 @@
       const locks = new Map();
 
       const acquire = (resource, txId, mode) => {
-        const holders =
-          locks.get(resource) ?? [];
+        const holders = locks.get(resource) ?? [];
 
         const compatible =
           holders.length === 0 ||
-          (
-            mode === "shared" &&
-            holders.every(
-              (holder) =>
-                holder.mode === "shared"
-            )
-          );
+          (mode === "shared" &&
+            holders.every((holder) => holder.mode === "shared"));
 
         if (!compatible) {
           return false;
@@ -100,20 +79,12 @@
       };
 
       const release = (resource, txId) => {
-        const holders =
-          locks.get(resource) ?? [];
+        const holders = locks.get(resource) ?? [];
 
-        const remaining =
-          holders.filter(
-            (holder) =>
-              holder.txId !== txId
-          );
+        const remaining = holders.filter((holder) => holder.txId !== txId);
 
         if (remaining.length) {
-          locks.set(
-            resource,
-            remaining
-          );
+          locks.set(resource, remaining);
         } else {
           locks.delete(resource);
         }
@@ -125,24 +96,11 @@
 
   // Example
   const myTodos = new TodoApp();
-  const lockTable =
-    myTodos.createLockTable();
+  const lockTable = myTodos.createLockTable();
 
-  console.log(
-    lockTable.acquire(
-      "todo:1",
-      "tx-A",
-      "shared"
-    )
-  );
+  console.log(lockTable.acquire("todo:1", "tx-A", "shared"));
 
-  console.log(
-    lockTable.acquire(
-      "todo:1",
-      "tx-B",
-      "exclusive"
-    )
-  );
+  console.log(lockTable.acquire("todo:1", "tx-B", "exclusive"));
 
   //
 }
@@ -197,7 +155,7 @@
       "tx-A": ["tx-B"],
       "tx-B": ["tx-C"],
       "tx-C": ["tx-A"],
-    })
+    }),
   );
 
   //
@@ -215,27 +173,17 @@
     }
 
     createCursorPaginator(items, pageSize) {
-      const encode = (value) =>
-        btoa(JSON.stringify(value));
+      const encode = (value) => btoa(JSON.stringify(value));
 
-      const decode = (value) =>
-        JSON.parse(atob(value));
+      const decode = (value) => JSON.parse(atob(value));
 
       const page = (cursor = null) => {
-        const start =
-          cursor == null
-            ? 0
-            : decode(cursor);
+        const start = cursor == null ? 0 : decode(cursor);
 
-        const data = items.slice(
-          start,
-          start + pageSize
-        );
+        const data = items.slice(start, start + pageSize);
 
         const next =
-          start + pageSize < items.length
-            ? encode(start + pageSize)
-            : null;
+          start + pageSize < items.length ? encode(start + pageSize) : null;
 
         return {
           data,
@@ -250,18 +198,12 @@
   // Example
   const myTodos = new TodoApp();
 
-  const paginator =
-    myTodos.createCursorPaginator(
-      ["A", "B", "C", "D"],
-      2
-    );
+  const paginator = myTodos.createCursorPaginator(["A", "B", "C", "D"], 2);
 
   const first = paginator.page();
 
   console.log(first);
-  console.log(
-    paginator.page(first.next)
-  );
+  console.log(paginator.page(first.next));
 
   //
 }
@@ -278,20 +220,10 @@
     }
 
     normalizeQueryPlan(plan) {
-      if (
-        plan.type === "AND" ||
-        plan.type === "OR"
-      ) {
-        const children =
-          plan.children
-            .map((child) =>
-              this.normalizeQueryPlan(child)
-            )
-            .sort((a, b) =>
-              JSON.stringify(a).localeCompare(
-                JSON.stringify(b)
-              )
-            );
+      if (plan.type === "AND" || plan.type === "OR") {
+        const children = plan.children
+          .map((child) => this.normalizeQueryPlan(child))
+          .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
 
         return {
           type: plan.type,
@@ -323,7 +255,7 @@
           value: "42",
         },
       ],
-    })
+    }),
   );
 
   //

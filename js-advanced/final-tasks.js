@@ -222,7 +222,7 @@ If a parameter is given (e.g., "Study"), then only show todos of that category.
       console.log("📌 Todo List:");
       filtered.forEach((todo) => {
         console.log(
-          `- ${todo.name} | Category: ${todo.category} | Time: ${todo.time} | Completed: ${todo.completed}`
+          `- ${todo.name} | Category: ${todo.category} | Time: ${todo.time} | Completed: ${todo.completed}`,
         );
       });
     }

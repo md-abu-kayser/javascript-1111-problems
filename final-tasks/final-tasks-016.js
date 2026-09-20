@@ -11,53 +11,28 @@
       this.instances = new Map();
     }
 
-    register(
-      token,
-      factory,
-      lifetime = "transient"
-    ) {
-      this.registrations.set(
-        token,
-        {
-          factory,
-          lifetime,
-        }
-      );
+    register(token, factory, lifetime = "transient") {
+      this.registrations.set(token, {
+        factory,
+        lifetime,
+      });
     }
 
     resolve(token) {
-      const registration =
-        this.registrations.get(token);
+      const registration = this.registrations.get(token);
 
       if (!registration) {
-        throw new Error(
-          `Dependency not registered: ${token}`
-        );
+        throw new Error(`Dependency not registered: ${token}`);
       }
 
-      if (
-        registration.lifetime ===
-        "singleton" &&
-        this.instances.has(token)
-      ) {
-        return this.instances.get(
-          token
-        );
+      if (registration.lifetime === "singleton" && this.instances.has(token)) {
+        return this.instances.get(token);
       }
 
-      const instance =
-        registration.factory(
-          this
-        );
+      const instance = registration.factory(this);
 
-      if (
-        registration.lifetime ===
-        "singleton"
-      ) {
-        this.instances.set(
-          token,
-          instance
-        );
+      if (registration.lifetime === "singleton") {
+        this.instances.set(token, instance);
       }
 
       return instance;
@@ -65,30 +40,21 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
   myTodos.register(
     "config",
     () => ({
       environment: "production",
     }),
-    "singleton"
+    "singleton",
   );
 
-  myTodos.register(
-    "service",
-    (container) => ({
-      config:
-        container.resolve(
-          "config"
-        ),
-    })
-  );
+  myTodos.register("service", (container) => ({
+    config: container.resolve("config"),
+  }));
 
-  console.log(
-    myTodos.resolve("service")
-  );
+  console.log(myTodos.resolve("service"));
 
   //
 }
@@ -106,8 +72,7 @@
 
     createFeatureFlagResolver(flags) {
       return (flagName, context) => {
-        const flag =
-          flags[flagName];
+        const flag = flags[flagName];
 
         if (!flag) {
           return false;
@@ -115,41 +80,23 @@
 
         if (
           flag.environments &&
-          !flag.environments.includes(
-            context.environment
-          )
+          !flag.environments.includes(context.environment)
         ) {
           return false;
         }
 
-        if (
-          flag.users &&
-          !flag.users.includes(
-            context.userId
-          )
-        ) {
+        if (flag.users && !flag.users.includes(context.userId)) {
           return false;
         }
 
-        if (
-          typeof flag.rollout ===
-          "number"
-        ) {
+        if (typeof flag.rollout === "number") {
           let hash = 0;
 
-          for (const char of String(
-            context.userId
-          )) {
-            hash =
-              (hash * 31 +
-                char.charCodeAt(0)) >>>
-              0;
+          for (const char of String(context.userId)) {
+            hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
           }
 
-          if (
-            hash % 100 >=
-            flag.rollout
-          ) {
+          if (hash % 100 >= flag.rollout) {
             return false;
           }
         }
@@ -160,26 +107,20 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
-  const isEnabled =
-    myTodos.createFeatureFlagResolver(
-      {
-        newEditor: {
-          environments: [
-            "production",
-          ],
-          rollout: 25,
-        },
-      }
-    );
+  const isEnabled = myTodos.createFeatureFlagResolver({
+    newEditor: {
+      environments: ["production"],
+      rollout: 25,
+    },
+  });
 
   console.log(
     isEnabled("newEditor", {
       userId: "user-42",
       environment: "production",
-    })
+    }),
   );
 
   //
@@ -197,24 +138,10 @@
     }
 
     createConfigResolver(...sources) {
-      const merge = (
-        target,
-        source
-      ) => {
-        for (const [
-          key,
-          value,
-        ] of Object.entries(source)) {
-          if (
-            value &&
-            typeof value ===
-              "object" &&
-            !Array.isArray(value)
-          ) {
-            target[key] = merge(
-              target[key] ?? {},
-              value
-            );
+      const merge = (target, source) => {
+        for (const [key, value] of Object.entries(source)) {
+          if (value && typeof value === "object" && !Array.isArray(value)) {
+            target[key] = merge(target[key] ?? {}, value);
           } else {
             target[key] = value;
           }
@@ -223,17 +150,12 @@
         return target;
       };
 
-      return sources.reduce(
-        (result, source) =>
-          merge(result, source),
-        {}
-      );
+      return sources.reduce((result, source) => merge(result, source), {});
     }
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
   console.log(
     myTodos.createConfigResolver(
@@ -250,8 +172,8 @@
         logging: {
           level: "info",
         },
-      }
-    )
+      },
+    ),
   );
 
   //
@@ -273,80 +195,45 @@
       const indegree = new Map();
 
       for (const plugin of plugins) {
-        graph.set(
-          plugin.name,
-          []
-        );
+        graph.set(plugin.name, []);
 
-        indegree.set(
-          plugin.name,
-          0
-        );
+        indegree.set(plugin.name, 0);
       }
 
       for (const plugin of plugins) {
-        for (const dependency of
-          plugin.dependencies ?? []) {
+        for (const dependency of plugin.dependencies ?? []) {
           if (!graph.has(dependency)) {
-            throw new Error(
-              `Missing plugin dependency: ${dependency}`
-            );
+            throw new Error(`Missing plugin dependency: ${dependency}`);
           }
 
-          graph
-            .get(dependency)
-            .push(plugin.name);
+          graph.get(dependency).push(plugin.name);
 
-          indegree.set(
-            plugin.name,
-            indegree.get(
-              plugin.name
-            ) + 1
-          );
+          indegree.set(plugin.name, indegree.get(plugin.name) + 1);
         }
       }
 
-      const queue = [
-        ...indegree
-          .entries()
-      ]
-        .filter(
-          ([, value]) =>
-            value === 0
-        )
+      const queue = [...indegree.entries()]
+        .filter(([, value]) => value === 0)
         .map(([key]) => key);
 
       const order = [];
 
       while (queue.length) {
-        const current =
-          queue.shift();
+        const current = queue.shift();
 
         order.push(current);
 
-        for (const next of graph.get(
-          current
-        )) {
-          indegree.set(
-            next,
-            indegree.get(next) - 1
-          );
+        for (const next of graph.get(current)) {
+          indegree.set(next, indegree.get(next) - 1);
 
-          if (
-            indegree.get(next) === 0
-          ) {
+          if (indegree.get(next) === 0) {
             queue.push(next);
           }
         }
       }
 
-      if (
-        order.length !==
-        plugins.length
-      ) {
-        throw new Error(
-          "Plugin dependency cycle detected"
-        );
+      if (order.length !== plugins.length) {
+        throw new Error("Plugin dependency cycle detected");
       }
 
       return order;
@@ -354,8 +241,7 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
   console.log(
     myTodos.createPluginRegistry([
@@ -365,23 +251,17 @@
       },
       {
         name: "database",
-        dependencies: [
-          "core",
-        ],
+        dependencies: ["core"],
       },
       {
         name: "api",
-        dependencies: [
-          "database",
-        ],
+        dependencies: ["database"],
       },
       {
         name: "analytics",
-        dependencies: [
-          "api",
-        ],
+        dependencies: ["api"],
       },
-    ])
+    ]),
   );
 
   //
@@ -398,31 +278,20 @@
       this.todos = [];
     }
 
-    createCapabilitySandbox(
-      capabilities,
-      plugin
-    ) {
-      const allowed = new Set(
-        Object.keys(capabilities)
-      );
+    createCapabilitySandbox(capabilities, plugin) {
+      const allowed = new Set(Object.keys(capabilities));
 
       const sandbox = new Proxy(
         {},
         {
           get(_, property) {
             if (!allowed.has(property)) {
-              throw new Error(
-                `Capability denied: ${String(
-                  property
-                )}`
-              );
+              throw new Error(`Capability denied: ${String(property)}`);
             }
 
-            return capabilities[
-              property
-            ];
+            return capabilities[property];
           },
-        }
+        },
       );
 
       return plugin(sandbox);
@@ -430,25 +299,21 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
-  const result =
-    myTodos.createCapabilitySandbox(
-      {
-        log: console.log,
-        getTime: () => Date.now(),
-      },
-      (api) => {
-        api.log(
-          "Plugin started"
-        );
+  const result = myTodos.createCapabilitySandbox(
+    {
+      log: console.log,
+      getTime: () => Date.now(),
+    },
+    (api) => {
+      api.log("Plugin started");
 
-        return {
-          startedAt: api.getTime(),
-        };
-      }
-    );
+      return {
+        startedAt: api.getTime(),
+      };
+    },
+  );
 
   console.log(result);
 

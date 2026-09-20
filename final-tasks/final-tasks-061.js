@@ -11,16 +11,14 @@
     }
 
     createTraceSampler(rate) {
-      return () =>
-        this.random() < rate;
+      return () => this.random() < rate;
     }
   }
 
   // Example
   const myTodos = new TodoApp();
 
-  const sample =
-    myTodos.createTraceSampler(0.2);
+  const sample = myTodos.createTraceSampler(0.2);
 
   console.log(sample());
 
@@ -45,11 +43,8 @@
         totalDuration:
           node.duration +
           (node.children ?? []).reduce(
-            (sum, child) =>
-              sum +
-              calculate(child)
-                .totalDuration,
-            0
+            (sum, child) => sum + calculate(child).totalDuration,
+            0,
           ),
       });
 
@@ -76,7 +71,7 @@
           children: [],
         },
       ],
-    })
+    }),
   );
 
   //
@@ -100,11 +95,7 @@
 
       return {
         increment(name, value = 1) {
-          counters.set(
-            name,
-            (counters.get(name) ?? 0) +
-              value
-          );
+          counters.set(name, (counters.get(name) ?? 0) + value);
         },
 
         gauge(name, value) {
@@ -121,16 +112,9 @@
 
         snapshot() {
           return {
-            counters: Object.fromEntries(
-              counters
-            ),
-            gauges: Object.fromEntries(
-              gauges
-            ),
-            histograms:
-              Object.fromEntries(
-                histograms
-              ),
+            counters: Object.fromEntries(counters),
+            gauges: Object.fromEntries(gauges),
+            histograms: Object.fromEntries(histograms),
           };
         },
       };
@@ -139,8 +123,7 @@
 
   // Example
   const myTodos = new TodoApp();
-  const metrics =
-    myTodos.createStructuredMetrics();
+  const metrics = myTodos.createStructuredMetrics();
 
   metrics.increment("requests");
   metrics.gauge("queue_depth", 4);
@@ -171,8 +154,7 @@
         context,
         child() {
           return {
-            correlationId:
-              context.correlationId,
+            correlationId: context.correlationId,
           };
         },
       };
@@ -182,14 +164,9 @@
   // Example
   const myTodos = new TodoApp();
 
-  const context =
-    myTodos.createCorrelationContext(
-      "trace-899"
-    );
+  const context = myTodos.createCorrelationContext("trace-899");
 
-  console.log(
-    context.child()
-  );
+  console.log(context.child());
 
   //
 }
@@ -205,9 +182,7 @@
       this.todos = [];
     }
 
-    createErrorBudgetTracker(
-      allowedFailures
-    ) {
+    createErrorBudgetTracker(allowedFailures) {
       let failures = 0;
 
       return {
@@ -217,15 +192,9 @@
           failures++;
         },
 
-        remaining() =>
-          Math.max(
-            0,
-            allowedFailures - failures
-          ),
+        remaining: () => Math.max(0, allowedFailures - failures),
 
-        exhausted() =>
-          failures >=
-          allowedFailures,
+        exhausted: () => failures >= allowedFailures,
       };
     }
   }
@@ -233,15 +202,12 @@
   // Example
   const myTodos = new TodoApp();
 
-  const budget =
-    myTodos.createErrorBudgetTracker(2);
+  const budget = myTodos.createErrorBudgetTracker(2);
 
   budget.recordFailure();
   budget.recordFailure();
 
-  console.log(
-    budget.exhausted()
-  );
+  console.log(budget.exhausted());
 
   //
 }

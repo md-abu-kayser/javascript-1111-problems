@@ -15,8 +15,7 @@
 
       const higher = (a, b) =>
         a.priority > b.priority ||
-        (a.priority === b.priority &&
-          a.sequence < b.sequence);
+        (a.priority === b.priority && a.sequence < b.sequence);
 
       const push = (value, priority) => {
         heap.push({
@@ -53,17 +52,11 @@
             const right = left + 1;
             let best = i;
 
-            if (
-              left < heap.length &&
-              higher(heap[left], heap[best])
-            ) {
+            if (left < heap.length && higher(heap[left], heap[best])) {
               best = left;
             }
 
-            if (
-              right < heap.length &&
-              higher(heap[right], heap[best])
-            ) {
+            if (right < heap.length && higher(heap[right], heap[best])) {
               best = right;
             }
 
@@ -111,17 +104,13 @@
       const build = (items) => {
         if (!items.length) return null;
 
-        const sorted = [...items].sort(
-          (a, b) => a.start - b.start
-        );
+        const sorted = [...items].sort((a, b) => a.start - b.start);
 
         const mid = Math.floor(sorted.length / 2);
 
         const node = {
           interval: sorted[mid],
-          maxEnd: Math.max(
-            ...sorted.map((item) => item.end)
-          ),
+          maxEnd: Math.max(...sorted.map((item) => item.end)),
           left: build(sorted.slice(0, mid)),
           right: build(sorted.slice(mid + 1)),
         };
@@ -139,24 +128,15 @@
 
           const { start, end } = node.interval;
 
-          if (
-            start <= queryEnd &&
-            end >= queryStart
-          ) {
+          if (start <= queryEnd && end >= queryStart) {
             result.push(node.interval);
           }
 
-          if (
-            node.left &&
-            node.left.maxEnd >= queryStart
-          ) {
+          if (node.left && node.left.maxEnd >= queryStart) {
             visit(node.left);
           }
 
-          if (
-            node.right &&
-            start <= queryEnd
-          ) {
+          if (node.right && start <= queryEnd) {
             visit(node.right);
           }
         };
@@ -199,10 +179,7 @@
       const stack = [];
 
       for (let i = 0; i < deadlines.length; i++) {
-        while (
-          stack.length &&
-          deadlines[stack.at(-1)] > deadlines[i]
-        ) {
+        while (stack.length && deadlines[stack.at(-1)] > deadlines[i]) {
           result[stack.pop()] = deadlines[i];
         }
 
@@ -216,11 +193,7 @@
   // Example
   const myTodos = new TodoApp();
 
-  console.log(
-    myTodos.createMonotonicDeadlineStack([
-      10, 14, 8, 20, 5,
-    ])
-  );
+  console.log(myTodos.createMonotonicDeadlineStack([10, 14, 8, 20, 5]));
 
   //
 }
@@ -259,9 +232,7 @@
 
         while (position > 1) {
           position = Math.floor(position / 2);
-          tree[position] =
-            tree[position * 2] +
-            tree[position * 2 + 1];
+          tree[position] = tree[position * 2] + tree[position * 2 + 1];
         }
       };
 
@@ -288,9 +259,7 @@
   // Example
   const myTodos = new TodoApp();
 
-  const tree = myTodos.createSegmentTree([
-    2, 4, 6, 8, 10,
-  ]);
+  const tree = myTodos.createSegmentTree([2, 4, 6, 8, 10]);
 
   console.log(tree.query(1, 3));
   tree.update(2, 20);
@@ -311,16 +280,10 @@
     }
 
     createFenwickTree(values) {
-      const tree = new Array(
-        values.length + 1
-      ).fill(0);
+      const tree = new Array(values.length + 1).fill(0);
 
       const update = (index, delta) => {
-        for (
-          let i = index + 1;
-          i < tree.length;
-          i += i & -i
-        ) {
+        for (let i = index + 1; i < tree.length; i += i & -i) {
           tree[i] += delta;
         }
       };
@@ -328,29 +291,20 @@
       const prefixSum = (index) => {
         let sum = 0;
 
-        for (
-          let i = index + 1;
-          i > 0;
-          i -= i & -i
-        ) {
+        for (let i = index + 1; i > 0; i -= i & -i) {
           sum += tree[i];
         }
 
         return sum;
       };
 
-      values.forEach((value, index) =>
-        update(index, value)
-      );
+      values.forEach((value, index) => update(index, value));
 
       return {
         update,
         prefixSum,
         rangeSum: (left, right) =>
-          prefixSum(right) -
-          (left > 0
-            ? prefixSum(left - 1)
-            : 0),
+          prefixSum(right) - (left > 0 ? prefixSum(left - 1) : 0),
       };
     }
   }
@@ -358,9 +312,7 @@
   // Example
   const myTodos = new TodoApp();
 
-  const tree = myTodos.createFenwickTree([
-    5, 3, 7, 2,
-  ]);
+  const tree = myTodos.createFenwickTree([5, 3, 7, 2]);
 
   console.log(tree.prefixSum(2));
   console.log(tree.rangeSum(1, 3));

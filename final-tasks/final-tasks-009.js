@@ -12,18 +12,12 @@
     createRouteMatcher(pattern) {
       const names = [];
 
-      const regexSource =
-        pattern.replace(
-          /:([A-Za-z0-9_]+)/g,
-          (_, name) => {
-            names.push(name);
-            return "([^/]+)";
-          }
-        );
+      const regexSource = pattern.replace(/:([A-Za-z0-9_]+)/g, (_, name) => {
+        names.push(name);
+        return "([^/]+)";
+      });
 
-      const regex = new RegExp(
-        `^${regexSource}$`
-      );
+      const regex = new RegExp(`^${regexSource}$`);
 
       return (path) => {
         const match = path.match(regex);
@@ -32,16 +26,11 @@
           return null;
         }
 
-        return names.reduce(
-          (params, name, index) => {
-            params[name] = decodeURIComponent(
-              match[index + 1]
-            );
+        return names.reduce((params, name, index) => {
+          params[name] = decodeURIComponent(match[index + 1]);
 
-            return params;
-          },
-          {}
-        );
+          return params;
+        }, {});
       };
     }
   }
@@ -49,14 +38,9 @@
   // Example
   const myTodos = new TodoApp();
 
-  const match =
-    myTodos.createRouteMatcher(
-      "/users/:userId/todos/:todoId"
-    );
+  const match = myTodos.createRouteMatcher("/users/:userId/todos/:todoId");
 
-  console.log(
-    match("/users/42/todos/900")
-  );
+  console.log(match("/users/42/todos/900"));
 
   //
 }
@@ -72,33 +56,24 @@
       this.todos = [];
     }
 
-    createMiddlewarePipeline(
-      middlewares
-    ) {
+    createMiddlewarePipeline(middlewares) {
       return async (context) => {
         let index = -1;
 
         const dispatch = async (position) => {
           if (position <= index) {
-            throw new Error(
-              "next() called multiple times"
-            );
+            throw new Error("next() called multiple times");
           }
 
           index = position;
 
-          const middleware =
-            middlewares[position];
+          const middleware = middlewares[position];
 
           if (!middleware) {
             return;
           }
 
-          await middleware(
-            context,
-            () =>
-              dispatch(position + 1)
-          );
+          await middleware(context, () => dispatch(position + 1));
         };
 
         await dispatch(0);
@@ -111,19 +86,18 @@
   // Example
   const myTodos = new TodoApp();
 
-  const pipeline =
-    myTodos.createMiddlewarePipeline([
-      async (ctx, next) => {
-        ctx.started = true;
-        await next();
-        ctx.finished = true;
-      },
+  const pipeline = myTodos.createMiddlewarePipeline([
+    async (ctx, next) => {
+      ctx.started = true;
+      await next();
+      ctx.finished = true;
+    },
 
-      async (ctx, next) => {
-        ctx.steps.push("middle");
-        await next();
-      },
-    ]);
+    async (ctx, next) => {
+      ctx.steps.push("middle");
+      await next();
+    },
+  ]);
 
   pipeline({
     steps: [],
@@ -144,10 +118,7 @@
       this.registry = new Map();
     }
 
-    async createIdempotencyRegistry(
-      key,
-      operation
-    ) {
+    async createIdempotencyRegistry(key, operation) {
       if (this.registry.has(key)) {
         return this.registry.get(key);
       }
@@ -171,32 +142,24 @@
   let executionCount = 0;
 
   Promise.all([
-    myTodos.createIdempotencyRegistry(
-      "payment-42",
-      async () => {
-        executionCount++;
+    myTodos.createIdempotencyRegistry("payment-42", async () => {
+      executionCount++;
 
-        await new Promise((resolve) =>
-          setTimeout(resolve, 100)
-        );
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
-        return {
-          success: true,
-          executionCount,
-        };
-      }
-    ),
-    myTodos.createIdempotencyRegistry(
-      "payment-42",
-      async () => {
-        executionCount++;
+      return {
+        success: true,
+        executionCount,
+      };
+    }),
+    myTodos.createIdempotencyRegistry("payment-42", async () => {
+      executionCount++;
 
-        return {
-          success: true,
-          executionCount,
-        };
-      }
-    ),
+      return {
+        success: true,
+        executionCount,
+      };
+    }),
   ]).then(console.log);
 
   //
@@ -214,20 +177,12 @@
       this.cache = new Map();
     }
 
-    async createCacheAsideStore(
-      key,
-      loader,
-      ttl = 1000
-    ) {
-      const cached =
-        this.cache.get(key);
+    async createCacheAsideStore(key, loader, ttl = 1000) {
+      const cached = this.cache.get(key);
 
       const now = Date.now();
 
-      if (
-        cached &&
-        cached.expiresAt > now
-      ) {
+      if (cached && cached.expiresAt > now) {
         return cached.value;
       }
 
@@ -256,7 +211,7 @@
         name: "Build API",
         completed: false,
       }),
-      5000
+      5000,
     )
     .then(console.log);
 
@@ -275,28 +230,18 @@
       this.pending = new Map();
     }
 
-    async createAsyncRequestDeduper(
-      requestKey,
-      requestFn
-    ) {
+    async createAsyncRequestDeduper(requestKey, requestFn) {
       if (this.pending.has(requestKey)) {
-        return this.pending.get(
-          requestKey
-        );
+        return this.pending.get(requestKey);
       }
 
       const promise = Promise.resolve()
         .then(requestFn)
         .finally(() => {
-          this.pending.delete(
-            requestKey
-          );
+          this.pending.delete(requestKey);
         });
 
-      this.pending.set(
-        requestKey,
-        promise
-      );
+      this.pending.set(requestKey, promise);
 
       return promise;
     }
@@ -308,32 +253,21 @@
   let networkCalls = 0;
 
   Promise.all([
-    myTodos.createAsyncRequestDeduper(
-      "todos",
-      async () => {
-        networkCalls++;
+    myTodos.createAsyncRequestDeduper("todos", async () => {
+      networkCalls++;
 
-        await new Promise((resolve) =>
-          setTimeout(resolve, 100)
-        );
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
-        return ["A", "B"];
-      }
-    ),
-    myTodos.createAsyncRequestDeduper(
-      "todos",
-      async () => {
-        networkCalls++;
+      return ["A", "B"];
+    }),
+    myTodos.createAsyncRequestDeduper("todos", async () => {
+      networkCalls++;
 
-        return ["A", "B"];
-      }
-    ),
+      return ["A", "B"];
+    }),
   ]).then((results) => {
     console.log(results);
-    console.log(
-      "Network calls:",
-      networkCalls
-    );
+    console.log("Network calls:", networkCalls);
   });
 
   //

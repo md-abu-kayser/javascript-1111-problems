@@ -31,16 +31,11 @@
       for (const todo of this.todos) {
         for (const dependency of todo.dependencies) {
           if (!graph.has(dependency)) {
-            throw new Error(
-              `Unknown dependency: ${dependency}`
-            );
+            throw new Error(`Unknown dependency: ${dependency}`);
           }
 
           graph.get(dependency).push(todo.name);
-          indegree.set(
-            todo.name,
-            indegree.get(todo.name) + 1
-          );
+          indegree.set(todo.name, indegree.get(todo.name) + 1);
         }
       }
 
@@ -60,8 +55,7 @@
         orderedTodos.push(current);
 
         for (const next of graph.get(current)) {
-          const newDegree =
-            indegree.get(next) - 1;
+          const newDegree = indegree.get(next) - 1;
 
           indegree.set(next, newDegree);
 
@@ -72,9 +66,7 @@
       }
 
       if (orderedTodos.length !== this.todos.length) {
-        throw new Error(
-          "Circular dependency detected"
-        );
+        throw new Error("Circular dependency detected");
       }
 
       return orderedTodos;
@@ -84,36 +76,15 @@
   // Example
   const myTodos = new TodoApp();
 
-  myTodos.addTodo(
-    "Learn HTML",
-    "Learning",
-    "2 hours"
-  );
+  myTodos.addTodo("Learn HTML", "Learning", "2 hours");
 
-  myTodos.addTodo(
-    "Learn CSS",
-    "Learning",
-    "3 hours",
-    ["Learn HTML"]
-  );
+  myTodos.addTodo("Learn CSS", "Learning", "3 hours", ["Learn HTML"]);
 
-  myTodos.addTodo(
-    "Learn JavaScript",
-    "Learning",
-    "5 hours",
-    ["Learn CSS"]
-  );
+  myTodos.addTodo("Learn JavaScript", "Learning", "5 hours", ["Learn CSS"]);
 
-  myTodos.addTodo(
-    "Build Project",
-    "Learning",
-    "8 hours",
-    ["Learn JavaScript"]
-  );
+  myTodos.addTodo("Build Project", "Learning", "8 hours", ["Learn JavaScript"]);
 
-  console.log(
-    myTodos.createDependencyGraph()
-  );
+  console.log(myTodos.createDependencyGraph());
 
   //
 }
@@ -140,9 +111,7 @@
 
     transactionalUpdate(operations) {
       if (!Array.isArray(operations)) {
-        throw new TypeError(
-          "Operations must be an array"
-        );
+        throw new TypeError("Operations must be an array");
       }
 
       const backup = structuredClone(this.todos);
@@ -150,9 +119,7 @@
       try {
         for (const operation of operations) {
           if (typeof operation !== "function") {
-            throw new TypeError(
-              "Every operation must be a function"
-            );
+            throw new TypeError("Every operation must be a function");
           }
 
           operation(this);
@@ -166,9 +133,7 @@
     }
 
     renameTodo(oldName, newName) {
-      const todo = this.todos.find(
-        (t) => t.name === oldName
-      );
+      const todo = this.todos.find((t) => t.name === oldName);
 
       if (!todo) {
         throw new Error("Todo not found");
@@ -178,9 +143,7 @@
     }
 
     completeTodo(name) {
-      const todo = this.todos.find(
-        (t) => t.name === name
-      );
+      const todo = this.todos.find((t) => t.name === name);
 
       if (!todo) {
         throw new Error("Todo not found");
@@ -193,29 +156,14 @@
   // Example
   const myTodos = new TodoApp();
 
-  myTodos.addTodo(
-    "Learn JavaScript",
-    "Learning",
-    "5 hours"
-  );
+  myTodos.addTodo("Learn JavaScript", "Learning", "5 hours");
 
-  myTodos.addTodo(
-    "Build Project",
-    "Learning",
-    "8 hours"
-  );
+  myTodos.addTodo("Build Project", "Learning", "8 hours");
 
   const success = myTodos.transactionalUpdate([
-    (app) =>
-      app.renameTodo(
-        "Learn JavaScript",
-        "Master JavaScript"
-      ),
+    (app) => app.renameTodo("Learn JavaScript", "Master JavaScript"),
 
-    (app) =>
-      app.completeTodo(
-        "Build Project"
-      ),
+    (app) => app.completeTodo("Build Project"),
   ]);
 
   console.log("Transaction:", success);
@@ -244,14 +192,9 @@
       });
     }
 
-    async *streamTodos(
-      filterFn = () => true,
-      delay = 100
-    ) {
+    async *streamTodos(filterFn = () => true, delay = 100) {
       if (typeof filterFn !== "function") {
-        throw new TypeError(
-          "filterFn must be a function"
-        );
+        throw new TypeError("filterFn must be a function");
       }
 
       for (const todo of this.todos) {
@@ -259,9 +202,7 @@
           continue;
         }
 
-        await new Promise((resolve) =>
-          setTimeout(resolve, delay)
-        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
 
         yield structuredClone(todo);
       }
@@ -271,28 +212,16 @@
   // Example
   const myTodos = new TodoApp();
 
-  myTodos.addTodo(
-    "Read JavaScript Book",
-    "Learning",
-    "4 hours"
-  );
+  myTodos.addTodo("Read JavaScript Book", "Learning", "4 hours");
 
-  myTodos.addTodo(
-    "Watch Movie",
-    "Entertainment",
-    "2 hours"
-  );
+  myTodos.addTodo("Watch Movie", "Entertainment", "2 hours");
 
-  myTodos.addTodo(
-    "Build Node API",
-    "Learning",
-    "6 hours"
-  );
+  myTodos.addTodo("Build Node API", "Learning", "6 hours");
 
   (async () => {
     for await (const todo of myTodos.streamTodos(
       (todo) => todo.category === "Learning",
-      200
+      200,
     )) {
       console.log("Streamed:", todo);
     }
@@ -335,22 +264,16 @@
         return structuredClone(value);
       }
 
-      const todo = this.todos.find(
-        (t) => t.name === name
-      );
+      const todo = this.todos.find((t) => t.name === name);
 
       if (!todo) {
         return undefined;
       }
 
-      this.cache.set(
-        name,
-        structuredClone(todo)
-      );
+      this.cache.set(name, structuredClone(todo));
 
       if (this.cache.size > this.cacheLimit) {
-        const oldestKey = this.cache.keys().next()
-          .value;
+        const oldestKey = this.cache.keys().next().value;
 
         this.cache.delete(oldestKey);
       }
@@ -366,35 +289,17 @@
   // Example
   const myTodos = new TodoApp(2);
 
-  myTodos.addTodo(
-    "Learn React",
-    "Learning",
-    "4 hours"
-  );
+  myTodos.addTodo("Learn React", "Learning", "4 hours");
 
-  myTodos.addTodo(
-    "Learn Node.js",
-    "Learning",
-    "5 hours"
-  );
+  myTodos.addTodo("Learn Node.js", "Learning", "5 hours");
 
-  myTodos.addTodo(
-    "Learn PostgreSQL",
-    "Learning",
-    "3 hours"
-  );
+  myTodos.addTodo("Learn PostgreSQL", "Learning", "3 hours");
 
-  console.log(
-    myTodos.getTodoFromCache("Learn React")
-  );
+  console.log(myTodos.getTodoFromCache("Learn React"));
 
-  console.log(
-    myTodos.getTodoFromCache("Learn Node.js")
-  );
+  console.log(myTodos.getTodoFromCache("Learn Node.js"));
 
-  console.log(
-    myTodos.getTodoFromCache("Learn React")
-  );
+  console.log(myTodos.getTodoFromCache("Learn React"));
 
   //
 }
@@ -410,13 +315,7 @@
       this.todos = [];
     }
 
-    addTodo(
-      name,
-      category,
-      time,
-      priority = 0,
-      dependencies = []
-    ) {
+    addTodo(name, category, time, priority = 0, dependencies = []) {
       this.todos.push({
         name,
         category,
@@ -428,12 +327,7 @@
     }
 
     scheduleTodos() {
-      const todoMap = new Map(
-        this.todos.map((todo) => [
-          todo.name,
-          todo,
-        ])
-      );
+      const todoMap = new Map(this.todos.map((todo) => [todo.name, todo]));
 
       const completed = new Set();
       const scheduled = [];
@@ -445,35 +339,29 @@
               return false;
             }
 
-            return todo.dependencies.every(
-              (dependency) =>
-                completed.has(dependency)
+            return todo.dependencies.every((dependency) =>
+              completed.has(dependency),
             );
           })
           .sort(
             (a, b) =>
-              b.priority - a.priority ||
-              parseInt(a.time) -
-                parseInt(b.time)
+              b.priority - a.priority || parseInt(a.time) - parseInt(b.time),
           );
 
         if (available.length === 0) {
           throw new Error(
-            "Unable to schedule todos. Circular or missing dependency detected."
+            "Unable to schedule todos. Circular or missing dependency detected.",
           );
         }
 
         for (const todo of available) {
           const exists = todo.dependencies.every(
             (dependency) =>
-              completed.has(dependency) ||
-              todoMap.has(dependency)
+              completed.has(dependency) || todoMap.has(dependency),
           );
 
           if (!exists) {
-            throw new Error(
-              `Missing dependency for ${todo.name}`
-            );
+            throw new Error(`Missing dependency for ${todo.name}`);
           }
 
           completed.add(todo.name);
@@ -488,49 +376,17 @@
   // Example
   const myTodos = new TodoApp();
 
-  myTodos.addTodo(
-    "Research",
-    "Learning",
-    "2 hours",
-    5
-  );
+  myTodos.addTodo("Research", "Learning", "2 hours", 5);
 
-  myTodos.addTodo(
-    "Design",
-    "Learning",
-    "3 hours",
-    4,
-    ["Research"]
-  );
+  myTodos.addTodo("Design", "Learning", "3 hours", 4, ["Research"]);
 
-  myTodos.addTodo(
-    "Implement",
-    "Learning",
-    "6 hours",
-    10,
-    ["Design"]
-  );
+  myTodos.addTodo("Implement", "Learning", "6 hours", 10, ["Design"]);
 
-  myTodos.addTodo(
-    "Testing",
-    "Learning",
-    "3 hours",
-    8,
-    ["Implement"]
-  );
+  myTodos.addTodo("Testing", "Learning", "3 hours", 8, ["Implement"]);
 
-  myTodos.addTodo(
-    "Deploy",
-    "Learning",
-    "2 hours",
-    9,
-    ["Testing"]
-  );
+  myTodos.addTodo("Deploy", "Learning", "2 hours", 9, ["Testing"]);
 
-  console.log(
-    "Scheduled Todos:",
-    myTodos.scheduleTodos()
-  );
+  console.log("Scheduled Todos:", myTodos.scheduleTodos());
 
   //
 }

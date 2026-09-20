@@ -48,36 +48,20 @@
         }
       }
 
-      return [...node.indexes].map(
-        (index) => this.todos[index]
-      );
+      return [...node.indexes].map((index) => this.todos[index]);
     }
   }
 
   // Example
   const myTodos = new TodoApp();
 
-  myTodos.addTodo(
-    "JavaScript Architecture",
-    "Learning",
-    "4 hours"
-  );
+  myTodos.addTodo("JavaScript Architecture", "Learning", "4 hours");
 
-  myTodos.addTodo(
-    "JavaScript Algorithms",
-    "Learning",
-    "5 hours"
-  );
+  myTodos.addTodo("JavaScript Algorithms", "Learning", "5 hours");
 
-  myTodos.addTodo(
-    "JavaScript Testing",
-    "Learning",
-    "3 hours"
-  );
+  myTodos.addTodo("JavaScript Testing", "Learning", "3 hours");
 
-  console.log(
-    myTodos.searchByPrefix("javascript a")
-  );
+  console.log(myTodos.searchByPrefix("javascript a"));
 
   //
 }
@@ -93,12 +77,7 @@
       this.todos = [];
     }
 
-    addTodo(
-      name,
-      category,
-      start,
-      end
-    ) {
+    addTodo(name, category, start, end) {
       this.todos.push({
         name,
         category,
@@ -127,10 +106,7 @@
           continue;
         }
 
-        last.end = Math.max(
-          last.end,
-          current.end
-        );
+        last.end = Math.max(last.end, current.end);
 
         last.name = `${last.name} + ${current.name}`;
       }
@@ -142,37 +118,15 @@
   // Example
   const myTodos = new TodoApp();
 
-  myTodos.addTodo(
-    "Study",
-    "Learning",
-    9,
-    11
-  );
+  myTodos.addTodo("Study", "Learning", 9, 11);
 
-  myTodos.addTodo(
-    "Code",
-    "Learning",
-    10,
-    13
-  );
+  myTodos.addTodo("Code", "Learning", 10, 13);
 
-  myTodos.addTodo(
-    "Exercise",
-    "Health",
-    14,
-    15
-  );
+  myTodos.addTodo("Exercise", "Health", 14, 15);
 
-  myTodos.addTodo(
-    "Read",
-    "Study",
-    14.5,
-    16
-  );
+  myTodos.addTodo("Read", "Study", 14.5, 16);
 
-  console.log(
-    myTodos.mergeTimeIntervals()
-  );
+  console.log(myTodos.mergeTimeIntervals());
 
   //
 }
@@ -206,21 +160,13 @@
         let index = heap.length - 1;
 
         while (index > 0) {
-          const parent = Math.floor(
-            (index - 1) / 2
-          );
+          const parent = Math.floor((index - 1) / 2);
 
-          if (
-            heap[parent].time <=
-            heap[index].time
-          ) {
+          if (heap[parent].time <= heap[index].time) {
             break;
           }
 
-          [heap[parent], heap[index]] = [
-            heap[index],
-            heap[parent],
-          ];
+          [heap[parent], heap[index]] = [heap[index], heap[parent]];
 
           index = parent;
         }
@@ -244,19 +190,11 @@
             const right = index * 2 + 2;
             let smallest = index;
 
-            if (
-              left < heap.length &&
-              heap[left].time <
-                heap[smallest].time
-            ) {
+            if (left < heap.length && heap[left].time < heap[smallest].time) {
               smallest = left;
             }
 
-            if (
-              right < heap.length &&
-              heap[right].time <
-                heap[smallest].time
-            ) {
+            if (right < heap.length && heap[right].time < heap[smallest].time) {
               smallest = right;
             }
 
@@ -264,10 +202,7 @@
               break;
             }
 
-            [heap[index], heap[smallest]] = [
-              heap[smallest],
-              heap[index],
-            ];
+            [heap[index], heap[smallest]] = [heap[smallest], heap[index]];
 
             index = smallest;
           }
@@ -276,9 +211,7 @@
         return root;
       };
 
-      this.todos
-        .filter((todo) => !todo.completed)
-        .forEach(push);
+      this.todos.filter((todo) => !todo.completed).forEach(push);
 
       const result = [];
 
@@ -293,27 +226,13 @@
   // Example
   const myTodos = new TodoApp();
 
-  myTodos.addTodo(
-    "Long Project",
-    "Learning",
-    8
-  );
+  myTodos.addTodo("Long Project", "Learning", 8);
 
-  myTodos.addTodo(
-    "Quick Fix",
-    "Personal",
-    1
-  );
+  myTodos.addTodo("Quick Fix", "Personal", 1);
 
-  myTodos.addTodo(
-    "Documentation",
-    "Learning",
-    3
-  );
+  myTodos.addTodo("Documentation", "Learning", 3);
 
-  console.log(
-    myTodos.createMinHeapScheduler()
-  );
+  console.log(myTodos.createMinHeapScheduler());
 
   //
 }
@@ -340,9 +259,7 @@
     }
 
     addDependency(name, dependency) {
-      const todo = this.todos.find(
-        (item) => item.name === name
-      );
+      const todo = this.todos.find((item) => item.name === name);
 
       if (todo) {
         todo.dependencies.push(dependency);
@@ -354,10 +271,7 @@
 
       const find = (name) => {
         if (parent.get(name) !== name) {
-          parent.set(
-            name,
-            find(parent.get(name))
-          );
+          parent.set(name, find(parent.get(name)));
         }
 
         return parent.get(name);
@@ -403,37 +317,17 @@
   // Example
   const myTodos = new TodoApp();
 
-  myTodos.addTodo(
-    "API Design",
-    "Learning",
-    "3 hours"
-  );
+  myTodos.addTodo("API Design", "Learning", "3 hours");
 
-  myTodos.addTodo(
-    "Database Design",
-    "Learning",
-    "4 hours"
-  );
+  myTodos.addTodo("Database Design", "Learning", "4 hours");
 
-  myTodos.addTodo(
-    "API Implementation",
-    "Learning",
-    "6 hours"
-  );
+  myTodos.addTodo("API Implementation", "Learning", "6 hours");
 
-  myTodos.addDependency(
-    "API Implementation",
-    "API Design"
-  );
+  myTodos.addDependency("API Implementation", "API Design");
 
-  myTodos.addDependency(
-    "API Implementation",
-    "Database Design"
-  );
+  myTodos.addDependency("API Implementation", "Database Design");
 
-  console.log(
-    myTodos.unionTodoGroups()
-  );
+  console.log(myTodos.unionTodoGroups());
 
   //
 }
@@ -450,9 +344,7 @@
     }
 
     evaluateExpression(expression) {
-      const tokens = expression.match(
-        /\d+(?:\.\d+)?|[()+\-*/]/g
-      );
+      const tokens = expression.match(/\d+(?:\.\d+)?|[()+\-*/]/g);
 
       if (!tokens) {
         throw new Error("Invalid expression");
@@ -463,17 +355,11 @@
       const parseExpression = () => {
         let value = parseTerm();
 
-        while (
-          tokens[position] === "+" ||
-          tokens[position] === "-"
-        ) {
+        while (tokens[position] === "+" || tokens[position] === "-") {
           const operator = tokens[position++];
           const right = parseTerm();
 
-          value =
-            operator === "+"
-              ? value + right
-              : value - right;
+          value = operator === "+" ? value + right : value - right;
         }
 
         return value;
@@ -482,17 +368,11 @@
       const parseTerm = () => {
         let value = parseFactor();
 
-        while (
-          tokens[position] === "*" ||
-          tokens[position] === "/"
-        ) {
+        while (tokens[position] === "*" || tokens[position] === "/") {
           const operator = tokens[position++];
           const right = parseFactor();
 
-          value =
-            operator === "*"
-              ? value * right
-              : value / right;
+          value = operator === "*" ? value * right : value / right;
         }
 
         return value;
@@ -505,9 +385,7 @@
           const value = parseExpression();
 
           if (tokens[position++] !== ")") {
-            throw new Error(
-              "Missing closing parenthesis"
-            );
+            throw new Error("Missing closing parenthesis");
           }
 
           return value;
@@ -516,9 +394,7 @@
         const number = Number(token);
 
         if (Number.isNaN(number)) {
-          throw new Error(
-            `Unexpected token: ${token}`
-          );
+          throw new Error(`Unexpected token: ${token}`);
         }
 
         return number;
@@ -537,11 +413,7 @@
   // Example
   const myTodos = new TodoApp();
 
-  console.log(
-    myTodos.evaluateExpression(
-      "10 + 4 * (8 - 3) / 2"
-    )
-  );
+  console.log(myTodos.evaluateExpression("10 + 4 * (8 - 3) / 2"));
 
   //
 }

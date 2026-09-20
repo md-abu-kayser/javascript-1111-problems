@@ -10,22 +10,13 @@
       this.pool = [];
       this.factory = factory;
 
-      for (
-        let i = 0;
-        i < size;
-        i++
-      ) {
-        this.pool.push(
-          factory()
-        );
+      for (let i = 0; i < size; i++) {
+        this.pool.push(factory());
       }
     }
 
     acquire() {
-      return (
-        this.pool.pop() ??
-        this.factory()
-      );
+      return this.pool.pop() ?? this.factory();
     }
 
     release(resource) {
@@ -33,8 +24,7 @@
     }
 
     use(callback) {
-      const resource =
-        this.acquire();
+      const resource = this.acquire();
 
       try {
         return callback(resource);
@@ -45,18 +35,15 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp(
-      () => ({
-        buffer: [],
-      }),
-      2
-    );
+  const myTodos = new TodoApp(
+    () => ({
+      buffer: [],
+    }),
+    2,
+  );
 
   myTodos.use((resource) => {
-    resource.buffer.push(
-      "Task 676"
-    );
+    resource.buffer.push("Task 676");
 
     console.log(resource);
   });
@@ -79,78 +66,58 @@
     }
 
     get(key) {
-      const entry =
-        this.cache.get(key);
+      const entry = this.cache.get(key);
 
       if (!entry) {
         return undefined;
       }
 
       entry.frequency++;
-      entry.lastUsed =
-        ++this.sequence;
+      entry.lastUsed = ++this.sequence;
 
       return entry.value;
     }
 
     set(key, value) {
       if (this.cache.has(key)) {
-        const entry =
-          this.cache.get(key);
+        const entry = this.cache.get(key);
 
         entry.value = value;
         entry.frequency++;
-        entry.lastUsed =
-          ++this.sequence;
+        entry.lastUsed = ++this.sequence;
 
         return;
       }
 
-      if (
-        this.cache.size >=
-        this.limit
-      ) {
+      if (this.cache.size >= this.limit) {
         let victimKey;
         let victim;
 
-        for (const [
-          candidateKey,
-          candidate,
-        ] of this.cache) {
+        for (const [candidateKey, candidate] of this.cache) {
           if (
             !victim ||
-            candidate.frequency <
-              victim.frequency ||
-            (
-              candidate.frequency ===
-                victim.frequency &&
-              candidate.lastUsed <
-                victim.lastUsed
-            )
+            candidate.frequency < victim.frequency ||
+            (candidate.frequency === victim.frequency &&
+              candidate.lastUsed < victim.lastUsed)
           ) {
-            victimKey =
-              candidateKey;
+            victimKey = candidateKey;
             victim = candidate;
           }
         }
 
-        this.cache.delete(
-          victimKey
-        );
+        this.cache.delete(victimKey);
       }
 
       this.cache.set(key, {
         value,
         frequency: 1,
-        lastUsed:
-          ++this.sequence,
+        lastUsed: ++this.sequence,
       });
     }
   }
 
   // Example
-  const myTodos =
-    new TodoApp(2);
+  const myTodos = new TodoApp(2);
 
   myTodos.set("A", 1);
   myTodos.set("B", 2);
@@ -159,9 +126,7 @@
 
   myTodos.set("C", 3);
 
-  console.log(
-    myTodos.cache
-  );
+  console.log(myTodos.cache);
 
   //
 }
@@ -179,24 +144,16 @@
     }
 
     createMemoryGraph(key, object) {
-      this.references.set(
-        key,
-        new WeakRef(object)
-      );
+      this.references.set(key, new WeakRef(object));
     }
 
     inspectReferences() {
       const report = [];
 
-      for (const [
-        key,
-        reference,
-      ] of this.references) {
+      for (const [key, reference] of this.references) {
         report.push({
           key,
-          alive:
-            reference.deref() !==
-            undefined,
+          alive: reference.deref() !== undefined,
         });
       }
 
@@ -205,27 +162,19 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
   let task = {
     name: "Temporary task",
   };
 
-  myTodos.createMemoryGraph(
-    "task-1",
-    task
-  );
+  myTodos.createMemoryGraph("task-1", task);
 
-  console.log(
-    myTodos.inspectReferences()
-  );
+  console.log(myTodos.inspectReferences());
 
   task = null;
 
-  console.log(
-    myTodos.inspectReferences()
-  );
+  console.log(myTodos.inspectReferences());
 
   //
 }
@@ -243,50 +192,26 @@
       this.resources = new Map();
     }
 
-    async createLRUResourceManager(
-      key,
-      factory,
-      dispose
-    ) {
+    async createLRUResourceManager(key, factory, dispose) {
       if (this.resources.has(key)) {
-        const resource =
-          this.resources.get(key);
+        const resource = this.resources.get(key);
 
         this.resources.delete(key);
-        this.resources.set(
-          key,
-          resource
-        );
+        this.resources.set(key, resource);
 
         return resource;
       }
 
-      const resource =
-        await factory();
+      const resource = await factory();
 
-      this.resources.set(
-        key,
-        resource
-      );
+      this.resources.set(key, resource);
 
-      if (
-        this.resources.size >
-        this.limit
-      ) {
-        const oldestKey =
-          this.resources
-            .keys()
-            .next()
-            .value;
+      if (this.resources.size > this.limit) {
+        const oldestKey = this.resources.keys().next().value;
 
-        const oldest =
-          this.resources.get(
-            oldestKey
-          );
+        const oldest = this.resources.get(oldestKey);
 
-        this.resources.delete(
-          oldestKey
-        );
+        this.resources.delete(oldestKey);
 
         await dispose(oldest);
       }
@@ -296,8 +221,7 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp(2);
+  const myTodos = new TodoApp(2);
 
   myTodos
     .createLRUResourceManager(
@@ -307,7 +231,7 @@
       }),
       async (resource) => {
         resource.connected = false;
-      }
+      },
     )
     .then(console.log);
 
@@ -329,49 +253,26 @@
       items,
       worker,
       initialSize = 2,
-      targetLatency = 100
+      targetLatency = 100,
     ) {
-      let batchSize =
-        initialSize;
+      let batchSize = initialSize;
 
       const results = [];
 
-      for (
-        let i = 0;
-        i < items.length;
-      ) {
-        const batch =
-          items.slice(
-            i,
-            i + batchSize
-          );
+      for (let i = 0; i < items.length; ) {
+        const batch = items.slice(i, i + batchSize);
 
-        const started =
-          performance.now();
+        const started = performance.now();
 
-        const processed =
-          await worker(batch);
+        const processed = await worker(batch);
 
-        const latency =
-          performance.now() -
-          started;
+        const latency = performance.now() - started;
 
         results.push(...processed);
 
-        if (
-          latency > targetLatency &&
-          batchSize > 1
-        ) {
-          batchSize = Math.max(
-            1,
-            Math.floor(
-              batchSize / 2
-            )
-          );
-        } else if (
-          latency <
-          targetLatency / 2
-        ) {
+        if (latency > targetLatency && batchSize > 1) {
+          batchSize = Math.max(1, Math.floor(batchSize / 2));
+        } else if (latency < targetLatency / 2) {
           batchSize++;
         }
 
@@ -383,27 +284,14 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
   myTodos
-    .createAdaptiveBatcher(
-      [1, 2, 3, 4, 5, 6],
-      async (batch) => {
-        await new Promise(
-          (resolve) =>
-            setTimeout(
-              resolve,
-              20
-            )
-        );
+    .createAdaptiveBatcher([1, 2, 3, 4, 5, 6], async (batch) => {
+      await new Promise((resolve) => setTimeout(resolve, 20));
 
-        return batch.map(
-          (value) =>
-            value * 2
-        );
-      }
-    )
+      return batch.map((value) => value * 2);
+    })
     .then(console.log);
 
   //

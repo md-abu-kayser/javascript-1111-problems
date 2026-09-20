@@ -9,36 +9,19 @@
       this.todos = [];
     }
 
-    validateTodoSchema(
-      value,
-      schema,
-      path = "$"
-    ) {
+    validateTodoSchema(value, schema, path = "$") {
       const errors = [];
 
       if (schema.type === "object") {
-        if (
-          value === null ||
-          typeof value !== "object"
-        ) {
-          return [
-            `${path} must be an object`,
-          ];
+        if (value === null || typeof value !== "object") {
+          return [`${path} must be an object`];
         }
 
-        for (const [
-          key,
-          childSchema,
-        ] of Object.entries(
-          schema.properties ?? {}
+        for (const [key, childSchema] of Object.entries(
+          schema.properties ?? {},
         )) {
-          if (
-            childSchema.required &&
-            !(key in value)
-          ) {
-            errors.push(
-              `${path}.${key} is required`
-            );
+          if (childSchema.required && !(key in value)) {
+            errors.push(`${path}.${key} is required`);
             continue;
           }
 
@@ -47,8 +30,8 @@
               ...this.validateTodoSchema(
                 value[key],
                 childSchema,
-                `${path}.${key}`
-              )
+                `${path}.${key}`,
+              ),
             );
           }
         }
@@ -58,18 +41,12 @@
 
       if (schema.type === "array") {
         if (!Array.isArray(value)) {
-          return [
-            `${path} must be an array`,
-          ];
+          return [`${path} must be an array`];
         }
 
         value.forEach((item, index) => {
           errors.push(
-            ...this.validateTodoSchema(
-              item,
-              schema.items,
-              `${path}[${index}]`
-            )
+            ...this.validateTodoSchema(item, schema.items, `${path}[${index}]`),
           );
         });
 
@@ -78,37 +55,24 @@
 
       if (schema.type === "number") {
         if (typeof value !== "number") {
-          errors.push(
-            `${path} must be a number`
-          );
+          errors.push(`${path} must be a number`);
         }
       }
 
       if (schema.type === "string") {
         if (typeof value !== "string") {
-          errors.push(
-            `${path} must be a string`
-          );
+          errors.push(`${path} must be a string`);
         }
       }
 
       if (schema.type === "boolean") {
         if (typeof value !== "boolean") {
-          errors.push(
-            `${path} must be a boolean`
-          );
+          errors.push(`${path} must be a boolean`);
         }
       }
 
-      if (
-        schema.enum &&
-        !schema.enum.includes(value)
-      ) {
-        errors.push(
-          `${path} must be one of ${schema.enum.join(
-            ", "
-          )}`
-        );
+      if (schema.enum && !schema.enum.includes(value)) {
+        errors.push(`${path} must be one of ${schema.enum.join(", ")}`);
       }
 
       return errors;
@@ -150,8 +114,8 @@
           priority: "high",
         },
       },
-      schema
-    )
+      schema,
+    ),
   );
 
   //
@@ -169,27 +133,18 @@
     }
 
     createConstantTimeCompare(a, b) {
-      if (
-        typeof a !== "string" ||
-        typeof b !== "string"
-      ) {
+      if (typeof a !== "string" || typeof b !== "string") {
         return false;
       }
 
-      const maxLength = Math.max(
-        a.length,
-        b.length
-      );
+      const maxLength = Math.max(a.length, b.length);
 
-      let difference =
-        a.length ^ b.length;
+      let difference = a.length ^ b.length;
 
       for (let i = 0; i < maxLength; i++) {
-        const left =
-          a.charCodeAt(i) || 0;
+        const left = a.charCodeAt(i) || 0;
 
-        const right =
-          b.charCodeAt(i) || 0;
+        const right = b.charCodeAt(i) || 0;
 
         difference |= left ^ right;
       }
@@ -202,17 +157,11 @@
   const myTodos = new TodoApp();
 
   console.log(
-    myTodos.createConstantTimeCompare(
-      "secret-token",
-      "secret-token"
-    )
+    myTodos.createConstantTimeCompare("secret-token", "secret-token"),
   );
 
   console.log(
-    myTodos.createConstantTimeCompare(
-      "secret-token",
-      "secret-value"
-    )
+    myTodos.createConstantTimeCompare("secret-token", "secret-value"),
   );
 
   //
@@ -230,27 +179,16 @@
     }
 
     async createSecureToken(bytes = 32) {
-      if (
-        !globalThis.crypto?.getRandomValues
-      ) {
-        throw new Error(
-          "Web Crypto API is unavailable"
-        );
+      if (!globalThis.crypto?.getRandomValues) {
+        throw new Error("Web Crypto API is unavailable");
       }
 
-      const buffer =
-        new Uint8Array(bytes);
+      const buffer = new Uint8Array(bytes);
 
-      globalThis.crypto.getRandomValues(
-        buffer
-      );
+      globalThis.crypto.getRandomValues(buffer);
 
       return [...buffer]
-        .map((value) =>
-          value
-            .toString(16)
-            .padStart(2, "0")
-        )
+        .map((value) => value.toString(16).padStart(2, "0"))
         .join("");
     }
   }
@@ -260,12 +198,7 @@
 
   myTodos
     .createSecureToken(16)
-    .then((token) =>
-      console.log(
-        "Secure token:",
-        token
-      )
-    );
+    .then((token) => console.log("Secure token:", token));
 
   //
 }
@@ -282,37 +215,19 @@
     }
 
     createProxyGuard(todo) {
-      const allowed = new Set([
-        "name",
-        "category",
-        "time",
-        "completed",
-      ]);
+      const allowed = new Set(["name", "category", "time", "completed"]);
 
       return new Proxy(todo, {
         set(target, property, value) {
           if (!allowed.has(property)) {
-            throw new Error(
-              `Unknown property: ${String(
-                property
-              )}`
-            );
+            throw new Error(`Unknown property: ${String(property)}`);
           }
 
-          if (
-            property === "completed" &&
-            typeof value !== "boolean"
-          ) {
-            throw new TypeError(
-              "completed must be boolean"
-            );
+          if (property === "completed" && typeof value !== "boolean") {
+            throw new TypeError("completed must be boolean");
           }
 
-          return Reflect.set(
-            target,
-            property,
-            value
-          );
+          return Reflect.set(target, property, value);
         },
       });
     }
@@ -321,13 +236,12 @@
   // Example
   const myTodos = new TodoApp();
 
-  const todo =
-    myTodos.createProxyGuard({
-      name: "Security Review",
-      category: "Security",
-      time: "4 hours",
-      completed: false,
-    });
+  const todo = myTodos.createProxyGuard({
+    name: "Security Review",
+    category: "Security",
+    time: "4 hours",
+    completed: false,
+  });
 
   todo.completed = true;
 
@@ -350,15 +264,11 @@
     createRevocableTodoView(todo) {
       return Proxy.revocable(todo, {
         set() {
-          throw new Error(
-            "Read-only view"
-          );
+          throw new Error("Read-only view");
         },
 
         deleteProperty() {
-          throw new Error(
-            "Read-only view"
-          );
+          throw new Error("Read-only view");
         },
       });
     }
@@ -367,13 +277,12 @@
   // Example
   const myTodos = new TodoApp();
 
-  const view =
-    myTodos.createRevocableTodoView({
-      name: "Audit",
-      category: "Security",
-      time: "5 hours",
-      completed: false,
-    });
+  const view = myTodos.createRevocableTodoView({
+    name: "Audit",
+    category: "Security",
+    time: "5 hours",
+    completed: false,
+  });
 
   console.log(view.proxy.name);
 
@@ -382,10 +291,7 @@
   try {
     console.log(view.proxy.name);
   } catch (error) {
-    console.log(
-      "View revoked:",
-      error.message
-    );
+    console.log("View revoked:", error.message);
   }
 
   //

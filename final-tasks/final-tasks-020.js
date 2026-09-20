@@ -10,28 +10,15 @@
       this.outbox = [];
     }
 
-    createTransactionalOutbox(
-      mutation,
-      eventFactory
-    ) {
-      const stateBackup =
-        structuredClone(
-          this.todos
-        );
+    createTransactionalOutbox(mutation, eventFactory) {
+      const stateBackup = structuredClone(this.todos);
 
-      const outboxBackup =
-        structuredClone(
-          this.outbox
-        );
+      const outboxBackup = structuredClone(this.outbox);
 
       try {
-        const result =
-          mutation(this.todos);
+        const result = mutation(this.todos);
 
-        const event =
-          eventFactory(
-            result
-          );
+        const event = eventFactory(result);
 
         this.outbox.push(event);
 
@@ -52,8 +39,7 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
   console.log(
     myTodos.createTransactionalOutbox(
@@ -72,8 +58,8 @@
       (todo) => ({
         type: "TodoCreated",
         payload: todo,
-      })
-    )
+      }),
+    ),
   );
 
   console.log(myTodos.outbox);
@@ -92,15 +78,12 @@
       this.todos = [];
     }
 
-    async createSagaCoordinator(
-      steps
-    ) {
+    async createSagaCoordinator(steps) {
       const completed = [];
 
       try {
         for (const step of steps) {
-          const result =
-            await step.execute();
+          const result = await step.execute();
 
           completed.push({
             step,
@@ -110,23 +93,11 @@
 
         return {
           success: true,
-          results:
-            completed.map(
-              (item) => item.result
-            ),
+          results: completed.map((item) => item.result),
         };
       } catch (error) {
-        for (
-          let i =
-            completed.length - 1;
-          i >= 0;
-          i--
-        ) {
-          await completed[
-            i
-          ].step.compensate(
-            completed[i].result
-          );
+        for (let i = completed.length - 1; i >= 0; i--) {
+          await completed[i].step.compensate(completed[i].result);
         }
 
         return {
@@ -139,8 +110,7 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
   myTodos
     .createSagaCoordinator([
@@ -149,9 +119,7 @@
           reserved: true,
         }),
         compensate: async () => {
-          console.log(
-            "Reservation released"
-          );
+          console.log("Reservation released");
         },
       },
       {
@@ -159,16 +127,12 @@
           payment: true,
         }),
         compensate: async () => {
-          console.log(
-            "Payment refunded"
-          );
+          console.log("Payment refunded");
         },
       },
       {
         execute: async () => {
-          throw new Error(
-            "Final step failed"
-          );
+          throw new Error("Final step failed");
         },
         compensate: async () => {},
       },
@@ -187,21 +151,14 @@
   class TodoApp {
     constructor(totalBudget = 5) {
       this.todos = [];
-      this.remainingBudget =
-        totalBudget;
+      this.remainingBudget = totalBudget;
     }
 
-    async createRetryBudget(
-      operations
-    ) {
-      const execute = async (
-        operation
-      ) => {
+    async createRetryBudget(operations) {
+      const execute = async (operation) => {
         let lastError;
 
-        while (
-          this.remainingBudget > 0
-        ) {
+        while (this.remainingBudget > 0) {
           this.remainingBudget--;
 
           try {
@@ -211,30 +168,18 @@
           }
         }
 
-        throw (
-          lastError ??
-          new Error(
-            "Retry budget exhausted"
-          )
-        );
+        throw lastError ?? new Error("Retry budget exhausted");
       };
 
-      return Promise.all(
-        operations.map(execute)
-      );
+      return Promise.all(operations.map(execute));
     }
   }
 
   // Example
-  const myTodos =
-    new TodoApp(5);
+  const myTodos = new TodoApp(5);
 
   myTodos
-    .createRetryBudget([
-      async () => "A",
-      async () => "B",
-      async () => "C",
-    ])
+    .createRetryBudget([async () => "A", async () => "B", async () => "C"])
     .then(console.log);
 
   //
@@ -252,14 +197,10 @@
     }
 
     appendEvent(event) {
-      this.events.push(
-        structuredClone(event)
-      );
+      this.events.push(structuredClone(event));
     }
 
-    replay(
-      events = this.events
-    ) {
+    replay(events = this.events) {
       const state = [];
 
       for (const event of events) {
@@ -267,20 +208,14 @@
           case "TODO_CREATED":
             state.push({
               name: event.name,
-              category:
-                event.category,
+              category: event.category,
               time: event.time,
               completed: false,
             });
             break;
 
           case "TODO_COMPLETED": {
-            const todo =
-              state.find(
-                (item) =>
-                  item.name ===
-                  event.name
-              );
+            const todo = state.find((item) => item.name === event.name);
 
             if (todo) {
               todo.completed = true;
@@ -290,12 +225,7 @@
           }
 
           case "TODO_REMOVED": {
-            const index =
-              state.findIndex(
-                (item) =>
-                  item.name ===
-                  event.name
-              );
+            const index = state.findIndex((item) => item.name === event.name);
 
             if (index !== -1) {
               state.splice(index, 1);
@@ -305,9 +235,7 @@
           }
 
           default:
-            throw new Error(
-              `Unknown event: ${event.type}`
-            );
+            throw new Error(`Unknown event: ${event.type}`);
         }
       }
 
@@ -315,18 +243,12 @@
     }
 
     stateAt(position) {
-      return this.replay(
-        this.events.slice(
-          0,
-          position
-        )
-      );
+      return this.replay(this.events.slice(0, position));
     }
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
   myTodos.appendEvent({
     type: "TODO_CREATED",
@@ -340,15 +262,9 @@
     name: "API",
   });
 
-  console.log(
-    "Current:",
-    myTodos.replay()
-  );
+  console.log("Current:", myTodos.replay());
 
-  console.log(
-    "Historical:",
-    myTodos.stateAt(1)
-  );
+  console.log("Historical:", myTodos.stateAt(1));
 
   //
 }
@@ -365,54 +281,32 @@
       this.checkpoints = new Map();
     }
 
-    async createWorkflowCheckpointEngine(
-      workflow,
-      workflowId
-    ) {
-      let startIndex =
-        this.checkpoints.get(
-          workflowId
-        ) ?? 0;
+    async createWorkflowCheckpointEngine(workflow, workflowId) {
+      let startIndex = this.checkpoints.get(workflowId) ?? 0;
 
       const results = [];
 
-      for (
-        let index = startIndex;
-        index < workflow.length;
-        index++
-      ) {
-        const step =
-          workflow[index];
+      for (let index = startIndex; index < workflow.length; index++) {
+        const step = workflow[index];
 
         try {
-          const result =
-            await step.execute(
-              results
-            );
+          const result = await step.execute(results);
 
           results.push(result);
 
-          this.checkpoints.set(
-            workflowId,
-            index + 1
-          );
+          this.checkpoints.set(workflowId, index + 1);
         } catch (error) {
           return {
             completed: false,
             failedAt: index,
             error,
-            checkpoint:
-              this.checkpoints.get(
-                workflowId
-              ),
+            checkpoint: this.checkpoints.get(workflowId),
             results,
           };
         }
       }
 
-      this.checkpoints.delete(
-        workflowId
-      );
+      this.checkpoints.delete(workflowId);
 
       return {
         completed: true,
@@ -422,8 +316,7 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
   const workflow = [
     {
@@ -449,10 +342,7 @@
   ];
 
   myTodos
-    .createWorkflowCheckpointEngine(
-      workflow,
-      "deployment-001"
-    )
+    .createWorkflowCheckpointEngine(workflow, "deployment-001")
     .then(console.log);
 
   //

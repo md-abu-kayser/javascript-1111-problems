@@ -17,7 +17,7 @@
           clearTimeout(timer);
 
           timer = setTimeout(async () => {
-            resolve(...await Promise.resolve(args));
+            resolve(...(await Promise.resolve(args)));
           }, delay);
         });
     }
@@ -53,10 +53,7 @@
         const now = Date.now();
         const elapsed = now - lastRefill;
 
-        tokens = Math.min(
-          capacity,
-          tokens + elapsed * refillRate
-        );
+        tokens = Math.min(capacity, tokens + elapsed * refillRate);
 
         lastRefill = now;
 
@@ -75,8 +72,7 @@
   // Example
   const myTodos = new TodoApp();
 
-  const bucket =
-    myTodos.createTokenBucket(5, 0.01);
+  const bucket = myTodos.createTokenBucket(5, 0.01);
 
   console.log(bucket.consume());
   console.log(bucket.consume(3));
@@ -133,12 +129,11 @@
   // Example
   const myTodos = new TodoApp();
 
-  const bucket =
-    myTodos.createLeakyBucket(3, 50);
+  const bucket = myTodos.createLeakyBucket(3, 50);
 
-//   bucket.push("A", async console.log);
-//   bucket.push("B", async console.log);
-//   bucket.push("C", async console.log);
+  //   bucket.push("A", async console.log);
+  //   bucket.push("B", async console.log);
+  //   bucket.push("C", async console.log);
 
   //
 }
@@ -159,9 +154,7 @@
 
       const add = (deadline, task) => {
         queue.push({ deadline, task });
-        queue.sort(
-          (a, b) => a.deadline - b.deadline
-        );
+        queue.sort((a, b) => a.deadline - b.deadline);
       };
 
       const drain = async () => {
@@ -192,18 +185,11 @@
 
   // Example
   const myTodos = new TodoApp();
-  const deadlines =
-    myTodos.createDeadlineQueue();
+  const deadlines = myTodos.createDeadlineQueue();
 
-  deadlines.add(
-    Date.now() + 500,
-    async () => "urgent"
-  );
+  deadlines.add(Date.now() + 500, async () => "urgent");
 
-  deadlines.add(
-    Date.now() + 1000,
-    async () => "normal"
-  );
+  deadlines.add(Date.now() + 1000, async () => "normal");
 
   deadlines.drain().then(console.log);
 
@@ -222,22 +208,15 @@
     }
 
     createTimingWheel(slotCount = 60) {
-      const slots = Array.from(
-        { length: slotCount },
-        () => []
-      );
+      const slots = Array.from({ length: slotCount }, () => []);
 
       let tick = 0;
 
       const schedule = (delay, task) => {
-        const slot =
-          (tick + delay) %
-          slotCount;
+        const slot = (tick + delay) % slotCount;
 
         slots[slot].push({
-          rounds: Math.floor(
-            delay / slotCount
-          ),
+          rounds: Math.floor(delay / slotCount),
           task,
         });
       };
@@ -268,9 +247,7 @@
   const myTodos = new TodoApp();
   const wheel = myTodos.createTimingWheel(10);
 
-  wheel.schedule(12, () =>
-    console.log("timer fired")
-  );
+  wheel.schedule(12, () => console.log("timer fired"));
 
   for (let i = 0; i < 12; i++) {
     wheel.advance();

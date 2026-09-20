@@ -9,22 +9,14 @@
       this.todos = [];
     }
 
-    createSlidingWindowAnalytics(
-      events,
-      windowSize
-    ) {
+    createSlidingWindowAnalytics(events, windowSize) {
       const queue = [];
       const result = [];
 
       for (const event of events) {
         queue.push(event);
 
-        while (
-          queue.length &&
-          event.time -
-            queue[0].time >
-            windowSize
-        ) {
+        while (queue.length && event.time - queue[0].time > windowSize) {
           queue.shift();
         }
 
@@ -32,11 +24,7 @@
           time: event.time,
           count: queue.length,
           averageDuration:
-            queue.reduce(
-              (sum, item) =>
-                sum + item.duration,
-              0
-            ) / queue.length,
+            queue.reduce((sum, item) => sum + item.duration, 0) / queue.length,
         });
       }
 
@@ -55,8 +43,8 @@
         { time: 5, duration: 8 },
         { time: 9, duration: 2 },
       ],
-      4
-    )
+      4,
+    ),
   );
 
   //
@@ -73,11 +61,7 @@
       this.todos = [];
     }
 
-    createReservoirSampler(
-      iterable,
-      sampleSize,
-      random = Math.random
-    ) {
+    createReservoirSampler(iterable, sampleSize, random = Math.random) {
       const reservoir = [];
       let count = 0;
 
@@ -89,9 +73,7 @@
           continue;
         }
 
-        const index = Math.floor(
-          random() * count
-        );
+        const index = Math.floor(random() * count);
 
         if (index < sampleSize) {
           reservoir[index] = item;
@@ -106,17 +88,7 @@
   const myTodos = new TodoApp();
 
   console.log(
-    myTodos.createReservoirSampler(
-      [
-        "A",
-        "B",
-        "C",
-        "D",
-        "E",
-        "F",
-      ],
-      3
-    )
+    myTodos.createReservoirSampler(["A", "B", "C", "D", "E", "F"], 3),
   );
 
   //
@@ -135,48 +107,27 @@
     }
 
     hash(value, seed) {
-      let hash =
-        2166136261 ^ seed;
+      let hash = 2166136261 ^ seed;
 
-      for (
-        let index = 0;
-        index < value.length;
-        index++
-      ) {
+      for (let index = 0; index < value.length; index++) {
         hash ^= value.charCodeAt(index);
-        hash =
-          Math.imul(
-            hash,
-            16777619
-          );
+        hash = Math.imul(hash, 16777619);
       }
 
-      return (
-        hash >>> 0
-      ) % this.bits.length;
+      return (hash >>> 0) % this.bits.length;
     }
 
     createBloomFilter(values) {
       for (const value of values) {
         for (let seed = 1; seed <= 3; seed++) {
-          this.bits[
-            this.hash(value, seed)
-          ] = 1;
+          this.bits[this.hash(value, seed)] = 1;
         }
       }
 
       return {
         mayContain: (value) => {
-          for (
-            let seed = 1;
-            seed <= 3;
-            seed++
-          ) {
-            if (
-              !this.bits[
-                this.hash(value, seed)
-              ]
-            ) {
+          for (let seed = 1; seed <= 3; seed++) {
+            if (!this.bits[this.hash(value, seed)]) {
               return false;
             }
           }
@@ -190,20 +141,15 @@
   // Example
   const myTodos = new TodoApp();
 
-  const filter =
-    myTodos.createBloomFilter([
-      "JavaScript",
-      "TypeScript",
-      "Node.js",
-    ]);
+  const filter = myTodos.createBloomFilter([
+    "JavaScript",
+    "TypeScript",
+    "Node.js",
+  ]);
 
-  console.log(
-    filter.mayContain("JavaScript")
-  );
+  console.log(filter.mayContain("JavaScript"));
 
-  console.log(
-    filter.mayContain("Rust")
-  );
+  console.log(filter.mayContain("Rust"));
 
   //
 }
@@ -218,55 +164,30 @@
     constructor(width = 64, depth = 4) {
       this.width = width;
       this.depth = depth;
-      this.table = Array.from(
-        { length: depth },
-        () =>
-          new Uint32Array(width)
-      );
+      this.table = Array.from({ length: depth }, () => new Uint32Array(width));
     }
 
     hash(value, seed) {
       let hash = seed;
 
       for (const char of value) {
-        hash =
-          Math.imul(
-            hash ^ char.charCodeAt(0),
-            16777619
-          );
+        hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
       }
 
-      return (
-        hash >>> 0
-      ) % this.width;
+      return (hash >>> 0) % this.width;
     }
 
     add(value, count = 1) {
-      for (
-        let row = 0;
-        row < this.depth;
-        row++
-      ) {
-        this.table[row][
-          this.hash(value, row + 1)
-        ] += count;
+      for (let row = 0; row < this.depth; row++) {
+        this.table[row][this.hash(value, row + 1)] += count;
       }
     }
 
     estimate(value) {
       let minimum = Infinity;
 
-      for (
-        let row = 0;
-        row < this.depth;
-        row++
-      ) {
-        minimum = Math.min(
-          minimum,
-          this.table[row][
-            this.hash(value, row + 1)
-          ]
-        );
+      for (let row = 0; row < this.depth; row++) {
+        minimum = Math.min(minimum, this.table[row][this.hash(value, row + 1)]);
       }
 
       return minimum;
@@ -274,16 +195,13 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
   myTodos.add("JavaScript", 3);
   myTodos.add("Node.js", 2);
   myTodos.add("JavaScript", 4);
 
-  console.log(
-    myTodos.estimate("JavaScript")
-  );
+  console.log(myTodos.estimate("JavaScript"));
 
   //
 }
@@ -299,30 +217,14 @@
       this.todos = [];
     }
 
-    externalMergeSort(
-      values,
-      chunkSize
-    ) {
+    externalMergeSort(values, chunkSize) {
       const chunks = [];
 
-      for (
-        let i = 0;
-        i < values.length;
-        i += chunkSize
-      ) {
-        chunks.push(
-          values
-            .slice(
-              i,
-              i + chunkSize
-            )
-            .sort((a, b) => a - b)
-        );
+      for (let i = 0; i < values.length; i += chunkSize) {
+        chunks.push(values.slice(i, i + chunkSize).sort((a, b) => a - b));
       }
 
-      const indexes = new Array(
-        chunks.length
-      ).fill(0);
+      const indexes = new Array(chunks.length).fill(0);
 
       const result = [];
 
@@ -330,20 +232,11 @@
         let bestChunk = -1;
         let bestValue = Infinity;
 
-        for (
-          let i = 0;
-          i < chunks.length;
-          i++
-        ) {
+        for (let i = 0; i < chunks.length; i++) {
           const index = indexes[i];
 
-          if (
-            index < chunks[i].length &&
-            chunks[i][index] <
-              bestValue
-          ) {
-            bestValue =
-              chunks[i][index];
+          if (index < chunks[i].length && chunks[i][index] < bestValue) {
+            bestValue = chunks[i][index];
 
             bestChunk = i;
           }
@@ -364,12 +257,7 @@
   // Example
   const myTodos = new TodoApp();
 
-  console.log(
-    myTodos.externalMergeSort(
-      [12, 4, 19, 3, 8, 1, 15, 7],
-      3
-    )
-  );
+  console.log(myTodos.externalMergeSort([12, 4, 19, 3, 8, 1, 15, 7], 3));
 
   //
 }

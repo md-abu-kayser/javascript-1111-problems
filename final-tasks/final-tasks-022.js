@@ -57,9 +57,7 @@
           const suffix = matchKey.slice(common);
 
           const split = {
-            children: new Map([
-              [suffix, child],
-            ]),
+            children: new Map([[suffix, child]]),
             terminal: false,
           };
 
@@ -99,7 +97,7 @@
       "connected",
       "config",
       "configure",
-    ])
+    ]),
   );
 
   //
@@ -125,10 +123,7 @@
       const randomLevel = () => {
         let level = 1;
 
-        while (
-          Math.random() < 0.5 &&
-          level < maxLevel
-        ) {
+        while (Math.random() < 0.5 && level < maxLevel) {
           level++;
         }
 
@@ -140,10 +135,7 @@
         let current = head;
 
         for (let i = maxLevel - 1; i >= 0; i--) {
-          while (
-            current.next[i] &&
-            current.next[i].value < value
-          ) {
+          while (current.next[i] && current.next[i].value < value) {
             current = current.next[i];
           }
 
@@ -166,17 +158,12 @@
         let current = head;
 
         for (let i = maxLevel - 1; i >= 0; i--) {
-          while (
-            current.next[i] &&
-            current.next[i].value < value
-          ) {
+          while (current.next[i] && current.next[i].value < value) {
             current = current.next[i];
           }
         }
 
-        return (
-          current.next[0]?.value === value
-        );
+        return current.next[0]?.value === value;
       };
 
       return { insert, has };
@@ -212,10 +199,7 @@
       let hash = seed;
 
       for (const char of value) {
-        hash = Math.imul(
-          hash ^ char.charCodeAt(0),
-          16777619
-        );
+        hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
       }
 
       return (hash >>> 0) % this.counts.length;
@@ -225,10 +209,7 @@
       const change = (value, delta) => {
         for (let seed = 1; seed <= 3; seed++) {
           const index = this.hash(value, seed);
-          this.counts[index] = Math.max(
-            0,
-            this.counts[index] + delta
-          );
+          this.counts[index] = Math.max(0, this.counts[index] + delta);
         }
       };
 
@@ -236,12 +217,7 @@
         add: (value) => change(value, 1),
         remove: (value) => change(value, -1),
         mayContain: (value) =>
-          [1, 2, 3].every(
-            (seed) =>
-              this.counts[
-                this.hash(value, seed)
-              ] > 0
-          ),
+          [1, 2, 3].every((seed) => this.counts[this.hash(value, seed)] > 0),
       };
     }
   }
@@ -249,8 +225,7 @@
   // Example
   const myTodos = new TodoApp();
 
-  const filter =
-    myTodos.createCountingBloomFilter();
+  const filter = myTodos.createCountingBloomFilter();
 
   filter.add("task-A");
   filter.add("task-B");
@@ -344,10 +319,7 @@
       const mod = 1000000007;
       const hashes = [];
 
-      if (
-        windowSize <= 0 ||
-        windowSize > text.length
-      ) {
+      if (windowSize <= 0 || windowSize > text.length) {
         return hashes;
       }
 
@@ -355,31 +327,20 @@
       let hash = 0;
 
       for (let i = 0; i < windowSize - 1; i++) {
-        highest =
-          (highest * base) % mod;
+        highest = (highest * base) % mod;
       }
 
       for (let i = 0; i < windowSize; i++) {
-        hash =
-          (hash * base +
-            text.charCodeAt(i)) % mod;
+        hash = (hash * base + text.charCodeAt(i)) % mod;
       }
 
       hashes.push(hash);
 
-      for (
-        let i = windowSize;
-        i < text.length;
-        i++
-      ) {
+      for (let i = windowSize; i < text.length; i++) {
         hash =
-          (
-            (hash -
-              text.charCodeAt(i - windowSize) *
-                highest) *
-              base +
-            text.charCodeAt(i)
-          ) % mod;
+          ((hash - text.charCodeAt(i - windowSize) * highest) * base +
+            text.charCodeAt(i)) %
+          mod;
 
         if (hash < 0) hash += mod;
         hashes.push(hash);
@@ -392,12 +353,7 @@
   // Example
   const myTodos = new TodoApp();
 
-  console.log(
-    myTodos.createRollingHashIndex(
-      "javascript",
-      4
-    )
-  );
+  console.log(myTodos.createRollingHashIndex("javascript", 4));
 
   //
 }

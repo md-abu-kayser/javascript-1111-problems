@@ -18,40 +18,23 @@
         completed: false,
       });
 
-      this.graph.set(
-        name,
-        []
-      );
+      this.graph.set(name, []);
     }
 
-    addDependency(
-      from,
-      to,
-      cost = 1
-    ) {
-      this.graph
-        .get(from)
-        .push({
-          to,
-          cost,
-        });
+    addDependency(from, to, cost = 1) {
+      this.graph.get(from).push({
+        to,
+        cost,
+      });
     }
 
-    dijkstraTodoGraph(
-      start,
-      destination
-    ) {
+    dijkstraTodoGraph(start, destination) {
       const distances = new Map();
       const previous = new Map();
-      const unvisited = new Set(
-        this.graph.keys()
-      );
+      const unvisited = new Set(this.graph.keys());
 
       for (const name of unvisited) {
-        distances.set(
-          name,
-          Infinity
-        );
+        distances.set(name, Infinity);
       }
 
       distances.set(start, 0);
@@ -62,50 +45,30 @@
         for (const node of unvisited) {
           if (
             current === null ||
-            distances.get(node) <
-              distances.get(current)
+            distances.get(node) < distances.get(current)
           ) {
             current = node;
           }
         }
 
-        if (
-          current === null ||
-          distances.get(current) === Infinity
-        ) {
+        if (current === null || distances.get(current) === Infinity) {
           break;
         }
 
         unvisited.delete(current);
 
-        for (const edge of this.graph.get(
-          current
-        )) {
-          const candidate =
-            distances.get(current) +
-            edge.cost;
+        for (const edge of this.graph.get(current)) {
+          const candidate = distances.get(current) + edge.cost;
 
-          if (
-            candidate <
-            distances.get(edge.to)
-          ) {
-            distances.set(
-              edge.to,
-              candidate
-            );
+          if (candidate < distances.get(edge.to)) {
+            distances.set(edge.to, candidate);
 
-            previous.set(
-              edge.to,
-              current
-            );
+            previous.set(edge.to, current);
           }
         }
       }
 
-      if (
-        distances.get(destination) ===
-        Infinity
-      ) {
+      if (distances.get(destination) === Infinity) {
         return null;
       }
 
@@ -120,9 +83,7 @@
       }
 
       return {
-        cost: distances.get(
-          destination
-        ),
+        cost: distances.get(destination),
         path,
       };
     }
@@ -131,48 +92,19 @@
   // Example
   const myTodos = new TodoApp();
 
-  myTodos.addTodo(
-    "Research",
-    "Learning",
-    "2 hours"
-  );
+  myTodos.addTodo("Research", "Learning", "2 hours");
 
-  myTodos.addTodo(
-    "Design",
-    "Learning",
-    "3 hours"
-  );
+  myTodos.addTodo("Design", "Learning", "3 hours");
 
-  myTodos.addTodo(
-    "Implement",
-    "Learning",
-    "5 hours"
-  );
+  myTodos.addTodo("Implement", "Learning", "5 hours");
 
-  myTodos.addDependency(
-    "Research",
-    "Design",
-    2
-  );
+  myTodos.addDependency("Research", "Design", 2);
 
-  myTodos.addDependency(
-    "Research",
-    "Implement",
-    10
-  );
+  myTodos.addDependency("Research", "Implement", 10);
 
-  myTodos.addDependency(
-    "Design",
-    "Implement",
-    3
-  );
+  myTodos.addDependency("Design", "Implement", 3);
 
-  console.log(
-    myTodos.dijkstraTodoGraph(
-      "Research",
-      "Implement"
-    )
-  );
+  console.log(myTodos.dijkstraTodoGraph("Research", "Implement"));
 
   //
 }
@@ -188,22 +120,13 @@
       this.todos = [];
     }
 
-    createAStarScheduler(
-      start,
-      goal,
-      neighbors,
-      heuristic
-    ) {
+    createAStarScheduler(start, goal, neighbors, heuristic) {
       const open = new Set([start]);
       const cameFrom = new Map();
 
-      const gScore = new Map([
-        [start, 0],
-      ]);
+      const gScore = new Map([[start, 0]]);
 
-      const fScore = new Map([
-        [start, heuristic(start, goal)],
-      ]);
+      const fScore = new Map([[start, heuristic(start, goal)]]);
 
       while (open.size) {
         let current = null;
@@ -211,9 +134,7 @@
         for (const node of open) {
           if (
             current === null ||
-            (fScore.get(node) ?? Infinity) <
-              (fScore.get(current) ??
-                Infinity)
+            (fScore.get(node) ?? Infinity) < (fScore.get(current) ?? Infinity)
           ) {
             current = node;
           }
@@ -224,8 +145,7 @@
 
           while (current !== undefined) {
             path.unshift(current);
-            current =
-              cameFrom.get(current);
+            current = cameFrom.get(current);
           }
 
           return path;
@@ -233,37 +153,15 @@
 
         open.delete(current);
 
-        for (const {
-          node,
-          cost,
-        } of neighbors(current)) {
-          const tentative =
-            (gScore.get(current) ??
-              Infinity) + cost;
+        for (const { node, cost } of neighbors(current)) {
+          const tentative = (gScore.get(current) ?? Infinity) + cost;
 
-          if (
-            tentative <
-            (gScore.get(node) ??
-              Infinity)
-          ) {
-            cameFrom.set(
-              node,
-              current
-            );
+          if (tentative < (gScore.get(node) ?? Infinity)) {
+            cameFrom.set(node, current);
 
-            gScore.set(
-              node,
-              tentative
-            );
+            gScore.set(node, tentative);
 
-            fScore.set(
-              node,
-              tentative +
-                heuristic(
-                  node,
-                  goal
-                )
-            );
+            fScore.set(node, tentative + heuristic(node, goal));
 
             open.add(node);
           }
@@ -282,12 +180,8 @@
       { node: "B", cost: 1 },
       { node: "C", cost: 4 },
     ],
-    B: [
-      { node: "D", cost: 2 },
-    ],
-    C: [
-      { node: "D", cost: 1 },
-    ],
+    B: [{ node: "D", cost: 2 }],
+    C: [{ node: "D", cost: 1 }],
     D: [],
   };
 
@@ -296,12 +190,8 @@
       "A",
       "D",
       (node) => graph[node],
-      (node, goal) =>
-        Math.abs(
-          node.charCodeAt(0) -
-            goal.charCodeAt(0)
-        )
-    )
+      (node, goal) => Math.abs(node.charCodeAt(0) - goal.charCodeAt(0)),
+    ),
   );
 
   //
@@ -346,36 +236,20 @@
         stack.push(node);
         onStack.add(node);
 
-        for (const next of this.graph.get(
-          node
-        )) {
+        for (const next of this.graph.get(node)) {
           if (!indexes.has(next)) {
             visit(next);
 
             lowLinks.set(
               node,
-              Math.min(
-                lowLinks.get(node),
-                lowLinks.get(next)
-              )
+              Math.min(lowLinks.get(node), lowLinks.get(next)),
             );
-          } else if (
-            onStack.has(next)
-          ) {
-            lowLinks.set(
-              node,
-              Math.min(
-                lowLinks.get(node),
-                indexes.get(next)
-              )
-            );
+          } else if (onStack.has(next)) {
+            lowLinks.set(node, Math.min(lowLinks.get(node), indexes.get(next)));
           }
         }
 
-        if (
-          lowLinks.get(node) ===
-          indexes.get(node)
-        ) {
+        if (lowLinks.get(node) === indexes.get(node)) {
           const component = [];
 
           let current;
@@ -401,15 +275,9 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
-  for (const name of [
-    "A",
-    "B",
-    "C",
-    "D",
-  ]) {
+  for (const name of ["A", "B", "C", "D"]) {
     myTodos.addTodo(name);
   }
 
@@ -418,9 +286,7 @@
   myTodos.addDependency("C", "A");
   myTodos.addDependency("C", "D");
 
-  console.log(
-    myTodos.findStronglyConnectedComponents()
-  );
+  console.log(myTodos.findStronglyConnectedComponents());
 
   //
 }
@@ -436,41 +302,24 @@
       this.todos = [];
     }
 
-    createMaxFlow(
-      capacityGraph,
-      source,
-      sink
-    ) {
-      const residual =
-        structuredClone(capacityGraph);
+    createMaxFlow(capacityGraph, source, sink) {
+      const residual = structuredClone(capacityGraph);
 
       let maxFlow = 0;
 
       const bfs = () => {
-        const parent = new Map([
-          [source, null],
-        ]);
+        const parent = new Map([[source, null]]);
 
         const queue = [source];
 
         while (queue.length) {
           const current = queue.shift();
 
-          for (const neighbor of Object.keys(
-            residual[current] ?? {}
-          )) {
-            if (
-              !parent.has(neighbor) &&
-              residual[current][neighbor] > 0
-            ) {
-              parent.set(
-                neighbor,
-                current
-              );
+          for (const neighbor of Object.keys(residual[current] ?? {})) {
+            if (!parent.has(neighbor) && residual[current][neighbor] > 0) {
+              parent.set(neighbor, current);
 
-              if (
-                neighbor === sink
-              ) {
+              if (neighbor === sink) {
                 return parent;
               }
 
@@ -491,36 +340,21 @@
 
         let pathFlow = Infinity;
 
-        for (
-          let node = sink;
-          node !== source;
-          node = parent.get(node)
-        ) {
-          const previous =
-            parent.get(node);
+        for (let node = sink; node !== source; node = parent.get(node)) {
+          const previous = parent.get(node);
 
-          pathFlow = Math.min(
-            pathFlow,
-            residual[previous][node]
-          );
+          pathFlow = Math.min(pathFlow, residual[previous][node]);
         }
 
-        for (
-          let node = sink;
-          node !== source;
-          node = parent.get(node)
-        ) {
-          const previous =
-            parent.get(node);
+        for (let node = sink; node !== source; node = parent.get(node)) {
+          const previous = parent.get(node);
 
-          residual[previous][node] -=
-            pathFlow;
+          residual[previous][node] -= pathFlow;
 
           residual[node] ??= {};
           residual[node][previous] ??= 0;
 
-          residual[node][previous] +=
-            pathFlow;
+          residual[node][previous] += pathFlow;
         }
 
         maxFlow += pathFlow;
@@ -548,13 +382,7 @@
     end: {},
   };
 
-  console.log(
-    myTodos.createMaxFlow(
-      capacityGraph,
-      "start",
-      "end"
-    )
-  );
+  console.log(myTodos.createMaxFlow(capacityGraph, "start", "end"));
 
   //
 }
@@ -570,32 +398,18 @@
       this.todos = [];
     }
 
-    createBipartiteAssignment(
-      workers,
-      taskMap
-    ) {
+    createBipartiteAssignment(workers, taskMap) {
       const assigned = new Map();
 
-      const visit = (
-        worker,
-        seen
-      ) => {
-        for (const task of (
-          taskMap[worker] ?? []
-        )) {
+      const visit = (worker, seen) => {
+        for (const task of taskMap[worker] ?? []) {
           if (seen.has(task)) {
             continue;
           }
 
           seen.add(task);
 
-          if (
-            !assigned.has(task) ||
-            visit(
-              assigned.get(task),
-              seen
-            )
-          ) {
+          if (!assigned.has(task) || visit(assigned.get(task), seen)) {
             assigned.set(task, worker);
             return true;
           }
@@ -608,12 +422,10 @@
         visit(worker, new Set());
       }
 
-      return [...assigned].map(
-        ([task, worker]) => ({
-          worker,
-          task,
-        })
-      );
+      return [...assigned].map(([task, worker]) => ({
+        worker,
+        task,
+      }));
     }
   }
 
@@ -621,22 +433,11 @@
   const myTodos = new TodoApp();
 
   console.log(
-    myTodos.createBipartiteAssignment(
-      ["Alice", "Bob", "Cara"],
-      {
-        Alice: [
-          "Testing",
-          "Frontend",
-        ],
-        Bob: [
-          "Frontend",
-          "Backend",
-        ],
-        Cara: [
-          "Backend",
-        ],
-      }
-    )
+    myTodos.createBipartiteAssignment(["Alice", "Bob", "Cara"], {
+      Alice: ["Testing", "Frontend"],
+      Bob: ["Frontend", "Backend"],
+      Cara: ["Backend"],
+    }),
   );
 
   //

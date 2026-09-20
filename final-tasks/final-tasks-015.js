@@ -12,10 +12,7 @@
     createActorSystem() {
       const actors = new Map();
 
-      const createActor = (
-        name,
-        handler
-      ) => {
+      const createActor = (name, handler) => {
         const mailbox = [];
         let processing = false;
 
@@ -25,14 +22,11 @@
           processing = true;
 
           while (mailbox.length) {
-            const message =
-              mailbox.shift();
+            const message = mailbox.shift();
 
             await handler(message, {
               send(target, payload) {
-                actors
-                  .get(target)
-                  ?.send(payload);
+                actors.get(target)?.send(payload);
               },
             });
           }
@@ -59,39 +53,19 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
-  const system =
-    myTodos.createActorSystem();
+  const system = myTodos.createActorSystem();
 
-  system.createActor(
-    "logger",
-    async (message) => {
-      console.log(
-        "Logger:",
-        message
-      );
-    }
-  );
+  system.createActor("logger", async (message) => {
+    console.log("Logger:", message);
+  });
 
-  const worker =
-    system.createActor(
-      "worker",
-      async (
-        message,
-        context
-      ) => {
-        context.send(
-          "logger",
-          `Processed ${message}`
-        );
-      }
-    );
+  const worker = system.createActor("worker", async (message, context) => {
+    context.send("logger", `Processed ${message}`);
+  });
 
-  worker.send(
-    "todo-601"
-  );
+  worker.send("todo-601");
 
   //
 }
@@ -123,8 +97,7 @@
         });
 
       const release = () => {
-        const next =
-          queue.shift();
+        const next = queue.shift();
 
         if (next) {
           next();
@@ -148,29 +121,18 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
-  const semaphore =
-    myTodos.createSemaphore(2);
+  const semaphore = myTodos.createSemaphore(2);
 
   Promise.all(
-    [1, 2, 3, 4].map(
-      (id) =>
-        semaphore.run(
-          async () => {
-            await new Promise(
-              (resolve) =>
-                setTimeout(
-                  resolve,
-                  100
-                )
-            );
+    [1, 2, 3, 4].map((id) =>
+      semaphore.run(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
-            return `Todo ${id}`;
-          }
-        )
-    )
+        return `Todo ${id}`;
+      }),
+    ),
   ).then(console.log);
 
   //
@@ -194,28 +156,14 @@
       let closed = false;
 
       const flush = () => {
-        while (
-          receivers.length &&
-          buffer.length
-        ) {
-          receivers
-            .shift()
-            .resolve(
-              buffer.shift()
-            );
+        while (receivers.length && buffer.length) {
+          receivers.shift().resolve(buffer.shift());
         }
 
-        while (
-          senders.length &&
-          buffer.length <
-            capacity
-        ) {
-          const sender =
-            senders.shift();
+        while (senders.length && buffer.length < capacity) {
+          const sender = senders.shift();
 
-          buffer.push(
-            sender.value
-          );
+          buffer.push(sender.value);
 
           sender.resolve();
         }
@@ -224,73 +172,53 @@
       return {
         send(value) {
           if (closed) {
-            return Promise.reject(
-              new Error(
-                "Channel closed"
-              )
-            );
+            return Promise.reject(new Error("Channel closed"));
           }
 
           if (receivers.length) {
-            receivers
-              .shift()
-              .resolve(value);
+            receivers.shift().resolve(value);
 
             return Promise.resolve();
           }
 
-          if (
-            buffer.length <
-            capacity
-          ) {
+          if (buffer.length < capacity) {
             buffer.push(value);
             return Promise.resolve();
           }
 
-          return new Promise(
-            (resolve) => {
-              senders.push({
-                value,
-                resolve,
-              });
-            }
-          );
+          return new Promise((resolve) => {
+            senders.push({
+              value,
+              resolve,
+            });
+          });
         },
 
         receive() {
           if (buffer.length) {
-            const value =
-              buffer.shift();
+            const value = buffer.shift();
 
             flush();
 
-            return Promise.resolve(
-              value
-            );
+            return Promise.resolve(value);
           }
 
           if (closed) {
-            return Promise.resolve(
-              undefined
-            );
+            return Promise.resolve(undefined);
           }
 
-          return new Promise(
-            (resolve) => {
-              receivers.push({
-                resolve,
-              });
-            }
-          );
+          return new Promise((resolve) => {
+            receivers.push({
+              resolve,
+            });
+          });
         },
 
         close() {
           closed = true;
 
           while (receivers.length) {
-            receivers
-              .shift()
-              .resolve(undefined);
+            receivers.shift().resolve(undefined);
           }
         },
       };
@@ -298,11 +226,9 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
-  const channel =
-    myTodos.createChannel(2);
+  const channel = myTodos.createChannel(2);
 
   channel.send("Task A");
   channel.send("Task B");
@@ -362,11 +288,9 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
-  const lock =
-    myTodos.createFairLock();
+  const lock = myTodos.createFairLock();
 
   lock.run(async () => {
     console.log("first");
@@ -400,10 +324,7 @@
       let active = 0;
 
       const runNext = () => {
-        if (
-          active >= workerCount ||
-          !queue.length
-        ) {
+        if (active >= workerCount || !queue.length) {
           return;
         }
 
@@ -424,17 +345,15 @@
 
       return {
         execute(task) {
-          return new Promise(
-            (resolve, reject) => {
-              queue.push({
-                task,
-                resolve,
-                reject,
-              });
+          return new Promise((resolve, reject) => {
+            queue.push({
+              task,
+              resolve,
+              reject,
+            });
 
-              runNext();
-            }
-          );
+            runNext();
+          });
         },
 
         get activeWorkers() {
@@ -449,29 +368,18 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
-  const pool =
-    myTodos.createWorkerPool(2);
+  const pool = myTodos.createWorkerPool(2);
 
   Promise.all(
-    [1, 2, 3, 4].map(
-      (id) =>
-        pool.execute(
-          async () => {
-            await new Promise(
-              (resolve) =>
-                setTimeout(
-                  resolve,
-                  50
-                )
-            );
+    [1, 2, 3, 4].map((id) =>
+      pool.execute(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
 
-            return `Completed ${id}`;
-          }
-        )
-    )
+        return `Completed ${id}`;
+      }),
+    ),
   ).then(console.log);
 
   //

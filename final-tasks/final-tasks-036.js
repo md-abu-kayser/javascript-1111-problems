@@ -21,18 +21,11 @@
           recent.set(key, value);
         }
 
-        while (
-          recent.size + frequent.size >
-          limit
-        ) {
+        while (recent.size + frequent.size > limit) {
           if (recent.size > frequent.size) {
-            recent.delete(
-              recent.keys().next().value
-            );
+            recent.delete(recent.keys().next().value);
           } else {
-            frequent.delete(
-              frequent.keys().next().value
-            );
+            frequent.delete(frequent.keys().next().value);
           }
         }
       };
@@ -97,9 +90,7 @@
 
       return {
         set(key, value) {
-          if (
-            protectedQueue.has(key)
-          ) {
+          if (protectedQueue.has(key)) {
             protectedQueue.set(key, value);
             return;
           }
@@ -111,14 +102,8 @@
 
           probation.set(key, value);
 
-          while (
-            probation.size +
-              protectedQueue.size >
-            limit
-          ) {
-            probation.delete(
-              probation.keys().next().value
-            );
+          while (probation.size + protectedQueue.size > limit) {
+            probation.delete(probation.keys().next().value);
           }
         },
 
@@ -163,26 +148,15 @@
       this.cache = new Map();
     }
 
-    async createStaleWhileRevalidate(
-      key,
-      loader,
-      ttl
-    ) {
-      const existing =
-        this.cache.get(key);
+    async createStaleWhileRevalidate(key, loader, ttl) {
+      const existing = this.cache.get(key);
       const now = Date.now();
 
-      if (
-        existing &&
-        existing.expiresAt > now
-      ) {
+      if (existing && existing.expiresAt > now) {
         return existing.value;
       }
 
-      if (
-        existing &&
-        !existing.refreshing
-      ) {
+      if (existing && !existing.refreshing) {
         existing.refreshing = true;
 
         Promise.resolve()
@@ -190,8 +164,7 @@
           .then((value) => {
             this.cache.set(key, {
               value,
-              expiresAt:
-                Date.now() + ttl,
+              expiresAt: Date.now() + ttl,
               refreshing: false,
             });
           });
@@ -217,13 +190,7 @@
   const myTodos = new TodoApp();
 
   myTodos
-    .createStaleWhileRevalidate(
-      "todos",
-      async () => [
-        "fresh",
-      ],
-      1000
-    )
+    .createStaleWhileRevalidate("todos", async () => ["fresh"], 1000)
     .then(console.log);
 
   //
@@ -241,28 +208,17 @@
       this.missing = new Map();
     }
 
-    async createNegativeCache(
-      key,
-      loader,
-      ttl = 1000
-    ) {
-      const existing =
-        this.missing.get(key);
+    async createNegativeCache(key, loader, ttl = 1000) {
+      const existing = this.missing.get(key);
 
-      if (
-        existing &&
-        existing > Date.now()
-      ) {
+      if (existing && existing > Date.now()) {
         return null;
       }
 
       const result = await loader();
 
       if (result == null) {
-        this.missing.set(
-          key,
-          Date.now() + ttl
-        );
+        this.missing.set(key, Date.now() + ttl);
       }
 
       return result;
@@ -273,11 +229,7 @@
   const myTodos = new TodoApp();
 
   myTodos
-    .createNegativeCache(
-      "missing-user",
-      async () => null,
-      5000
-    )
+    .createNegativeCache("missing-user", async () => null, 5000)
     .then(console.log);
 
   //
@@ -296,13 +248,10 @@
     }
 
     createRefreshJitter(ttl, spread) {
-      const jitter =
-        (this.random() * 2 - 1) *
-        spread;
+      const jitter = (this.random() * 2 - 1) * spread;
 
       return {
-        expiresAt:
-          Date.now() + ttl + jitter,
+        expiresAt: Date.now() + ttl + jitter,
       };
     }
   }
@@ -310,12 +259,7 @@
   // Example
   const myTodos = new TodoApp();
 
-  console.log(
-    myTodos.createRefreshJitter(
-      10000,
-      2000
-    )
-  );
+  console.log(myTodos.createRefreshJitter(10000, 2000));
 
   //
 }

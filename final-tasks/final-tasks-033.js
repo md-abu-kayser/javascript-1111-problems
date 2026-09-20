@@ -21,9 +21,7 @@
           const plugin = plugins.get(name);
 
           if (!plugin) {
-            throw new Error(
-              `Unknown plugin: ${name}`
-            );
+            throw new Error(`Unknown plugin: ${name}`);
           }
 
           return plugin(...args);
@@ -34,26 +32,15 @@
 
   // Example
   const myTodos = new TodoApp();
-  const registry =
-    myTodos.createHotPluginRegistry();
+  const registry = myTodos.createHotPluginRegistry();
 
-  registry.register(
-    "formatter",
-    (value) => value.toUpperCase()
-  );
+  registry.register("formatter", (value) => value.toUpperCase());
 
-  console.log(
-    registry.call("formatter", "todo")
-  );
+  console.log(registry.call("formatter", "todo"));
 
-  registry.register(
-    "formatter",
-    (value) => `[${value}]`
-  );
+  registry.register("formatter", (value) => `[${value}]`);
 
-  console.log(
-    registry.call("formatter", "todo")
-  );
+  console.log(registry.call("formatter", "todo"));
 
   //
 }
@@ -77,34 +64,23 @@
 
         return {
           resolve(name) {
-            const definition =
-              definitions.get(name);
+            const definition = definitions.get(name);
 
             if (!definition) {
-              throw new Error(
-                "Unknown dependency"
-              );
+              throw new Error("Unknown dependency");
             }
 
-            if (
-              definition.scope === "singleton"
-            ) {
+            if (definition.scope === "singleton") {
               if (!definition.instance) {
-                definition.instance =
-                  definition.factory();
+                definition.instance = definition.factory();
               }
 
               return definition.instance;
             }
 
-            if (
-              definition.scope === "scoped"
-            ) {
+            if (definition.scope === "scoped") {
               if (!instances.has(name)) {
-                instances.set(
-                  name,
-                  definition.factory()
-                );
+                instances.set(name, definition.factory());
               }
 
               return instances.get(name);
@@ -125,13 +101,10 @@
 
       return {
         register(name, factory, scope) {
-          definitions.set(
-            name,
-            {
-              factory,
-              scope,
-            }
-          );
+          definitions.set(name, {
+            factory,
+            scope,
+          });
         },
         createScope,
       };
@@ -141,22 +114,13 @@
   // Example
   const myTodos = new TodoApp();
 
-  const container =
-    myTodos.createScopedContainer();
+  const container = myTodos.createScopedContainer();
 
-  container.register(
-    "requestId",
-    () => crypto.randomUUID(),
-    "scoped"
-  );
+  container.register("requestId", () => crypto.randomUUID(), "scoped");
 
-  const scope =
-    container.createScope();
+  const scope = container.createScope();
 
-  console.log(
-    scope.resolve("requestId") ===
-      scope.resolve("requestId")
-  );
+  console.log(scope.resolve("requestId") === scope.resolve("requestId"));
 
   //
 }
@@ -178,30 +142,19 @@
       for (const line of content.split(/\r?\n/)) {
         const trimmed = line.trim();
 
-        if (
-          !trimmed ||
-          trimmed.startsWith("#")
-        ) {
+        if (!trimmed || trimmed.startsWith("#")) {
           continue;
         }
 
-        const match =
-          trimmed.match(
-            /^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/
-          );
+        const match = trimmed.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
 
         if (!match) {
-          throw new Error(
-            `Invalid assignment: ${line}`
-          );
+          throw new Error(`Invalid assignment: ${line}`);
         }
 
         let value = match[2];
 
-        if (
-          /^".*"$/.test(value) ||
-          /^'.*'$/.test(value)
-        ) {
+        if (/^".*"$/.test(value) || /^'.*'$/.test(value)) {
           value = value.slice(1, -1);
         }
 
@@ -220,7 +173,7 @@
       PORT=3000
       NAME="Todo Service"
       DEBUG=true
-    `)
+    `),
   );
 
   //
@@ -238,10 +191,9 @@
     }
 
     parseSemver(version) {
-      const match =
-        version.match(
-          /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/
-        );
+      const match = version.match(
+        /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?$/,
+      );
 
       if (!match) {
         throw new Error("Invalid semver");
@@ -251,43 +203,26 @@
         major: Number(match[1]),
         minor: Number(match[2]),
         patch: Number(match[3]),
-        prerelease: match[4]
-          ? match[4].split(".")
-          : [],
+        prerelease: match[4] ? match[4].split(".") : [],
       };
     }
 
     compareSemver(a, b) {
-      const left =
-        this.parseSemver(a);
+      const left = this.parseSemver(a);
 
-      const right =
-        this.parseSemver(b);
+      const right = this.parseSemver(b);
 
-      for (const key of [
-        "major",
-        "minor",
-        "patch",
-      ]) {
+      for (const key of ["major", "minor", "patch"]) {
         if (left[key] !== right[key]) {
-          return left[key] >
-            right[key]
-            ? 1
-            : -1;
+          return left[key] > right[key] ? 1 : -1;
         }
       }
 
-      if (
-        !left.prerelease.length &&
-        right.prerelease.length
-      ) {
+      if (!left.prerelease.length && right.prerelease.length) {
         return 1;
       }
 
-      if (
-        left.prerelease.length &&
-        !right.prerelease.length
-      ) {
+      if (left.prerelease.length && !right.prerelease.length) {
         return -1;
       }
 
@@ -298,12 +233,7 @@
   // Example
   const myTodos = new TodoApp();
 
-  console.log(
-    myTodos.compareSemver(
-      "2.0.0-beta.1",
-      "2.0.0"
-    )
-  );
+  console.log(myTodos.compareSemver("2.0.0-beta.1", "2.0.0"));
 
   //
 }
@@ -330,10 +260,7 @@
           const index = path.indexOf(node);
 
           throw new Error(
-            `Cycle: ${[
-              ...path.slice(index),
-              node,
-            ].join(" -> ")}`
+            `Cycle: ${[...path.slice(index), node].join(" -> ")}`,
           );
         }
 
@@ -366,7 +293,7 @@
       core: [],
       database: ["core"],
       api: ["database"],
-    })
+    }),
   );
 
   //

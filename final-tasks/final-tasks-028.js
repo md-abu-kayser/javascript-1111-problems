@@ -10,9 +10,8 @@
     }
 
     createLcsTable(a, b) {
-      const table = Array.from(
-        { length: a.length + 1 },
-        () => new Array(b.length + 1).fill(0)
+      const table = Array.from({ length: a.length + 1 }, () =>
+        new Array(b.length + 1).fill(0),
       );
 
       for (let i = 1; i <= a.length; i++) {
@@ -20,10 +19,7 @@
           table[i][j] =
             a[i - 1] === b[j - 1]
               ? table[i - 1][j - 1] + 1
-              : Math.max(
-                  table[i - 1][j],
-                  table[i][j - 1]
-                );
+              : Math.max(table[i - 1][j], table[i][j - 1]);
         }
       }
 
@@ -34,12 +30,7 @@
   // Example
   const myTodos = new TodoApp();
 
-  console.log(
-    myTodos.createLcsTable(
-      ["a", "b", "c"],
-      ["b", "c", "d"]
-    )
-  );
+  console.log(myTodos.createLcsTable(["a", "b", "c"], ["b", "c", "d"]));
 
   //
 }
@@ -61,11 +52,7 @@
       let j = 0;
 
       while (i < a.length || j < b.length) {
-        if (
-          i < a.length &&
-          j < b.length &&
-          a[i] === b[j]
-        ) {
+        if (i < a.length && j < b.length && a[i] === b[j]) {
           result.push({
             type: "equal",
             value: a[i],
@@ -92,12 +79,7 @@
   // Example
   const myTodos = new TodoApp();
 
-  console.log(
-    myTodos.createMyersDiff(
-      ["A", "B", "D"],
-      ["A", "C", "D"]
-    )
-  );
+  console.log(myTodos.createMyersDiff(["A", "B", "D"], ["A", "C", "D"]));
 
   //
 }
@@ -155,8 +137,8 @@
     myTodos.createThreeWayMerge(
       { status: "todo", owner: "A" },
       { status: "done", owner: "A" },
-      { status: "todo", owner: "B" }
-    )
+      { status: "todo", owner: "B" },
+    ),
   );
 
   //
@@ -190,13 +172,11 @@
         const parent = getParent(patch.path);
 
         if (patch.type === "replace") {
-          parent[patch.path.at(-1)] =
-            patch.value;
+          parent[patch.path.at(-1)] = patch.value;
         }
 
         if (patch.type === "add") {
-          parent[patch.path.at(-1)] =
-            patch.value;
+          parent[patch.path.at(-1)] = patch.value;
         }
 
         if (patch.type === "remove") {
@@ -228,8 +208,8 @@
           path: ["user", "name"],
           value: "Morgan",
         },
-      ]
-    )
+      ],
+    ),
   );
 
   //
@@ -252,16 +232,9 @@
       for (const key of Object.keys(base)) {
         const changes = branches
           .map((branch) => branch[key])
-          .filter(
-            (value) =>
-              !Object.is(value, base[key])
-          );
+          .filter((value) => !Object.is(value, base[key]));
 
-        const unique = new Set(
-          changes.map((value) =>
-            JSON.stringify(value)
-          )
-        );
+        const unique = new Set(changes.map((value) => JSON.stringify(value)));
 
         if (unique.size > 1) {
           conflicts.push({
@@ -279,14 +252,11 @@
   const myTodos = new TodoApp();
 
   console.log(
-    myTodos.detectMergeConflictGraph(
-      { status: "todo", priority: 1 },
-      [
-        { status: "done", priority: 2 },
-        { status: "blocked", priority: 2 },
-        { status: "done", priority: 2 },
-      ]
-    )
+    myTodos.detectMergeConflictGraph({ status: "todo", priority: 1 }, [
+      { status: "done", priority: 2 },
+      { status: "blocked", priority: 2 },
+      { status: "done", priority: 2 },
+    ]),
   );
 
   //

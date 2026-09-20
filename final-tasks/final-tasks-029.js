@@ -17,25 +17,16 @@
         increment: (amount = 1) => {
           this.counts.set(
             this.replicaId,
-            this.counts.get(this.replicaId) + amount
+            this.counts.get(this.replicaId) + amount,
           );
         },
 
         value: () =>
-          [...this.counts.values()].reduce(
-            (sum, value) => sum + value,
-            0
-          ),
+          [...this.counts.values()].reduce((sum, value) => sum + value, 0),
 
         merge: (remote) => {
           for (const [id, value] of remote) {
-            this.counts.set(
-              id,
-              Math.max(
-                this.counts.get(id) ?? 0,
-                value
-              )
-            );
+            this.counts.set(id, Math.max(this.counts.get(id) ?? 0, value));
           }
         },
 
@@ -49,11 +40,7 @@
   const counter = myTodos.createGCounter();
 
   counter.increment(3);
-  counter.merge(
-    new Map([
-      ["B", 5],
-    ])
-  );
+  counter.merge(new Map([["B", 5]]));
 
   console.log(counter.value());
 
@@ -83,14 +70,9 @@
 
         if (
           !this.register ||
-          candidate.timestamp >
-            this.register.timestamp ||
-          (
-            candidate.timestamp ===
-              this.register.timestamp &&
-            candidate.replicaId >
-              this.register.replicaId
-          )
+          candidate.timestamp > this.register.timestamp ||
+          (candidate.timestamp === this.register.timestamp &&
+            candidate.replicaId > this.register.replicaId)
         ) {
           this.register = candidate;
         }
@@ -98,24 +80,17 @@
 
       return {
         write,
-        read: () =>
-          this.register
-            ? this.register.value
-            : undefined,
+        read: () => (this.register ? this.register.value : undefined),
         merge: (remote) => {
           write.call(
             {
               register: this.register,
             },
             remote.value,
-            remote.timestamp
+            remote.timestamp,
           );
 
-          if (
-            !this.register ||
-            remote.timestamp >
-              this.register.timestamp
-          ) {
+          if (!this.register || remote.timestamp > this.register.timestamp) {
             this.register = remote;
           }
         },
@@ -155,8 +130,7 @@
       return {
         add: (value) => this.items.add(value),
 
-        has: (value) =>
-          this.items.has(value),
+        has: (value) => this.items.has(value),
 
         merge: (remote) => {
           for (const value of remote) {
@@ -174,9 +148,7 @@
   const set = myTodos.createGSet();
 
   set.add("js");
-  set.merge(
-    new Set(["node", "postgres"])
-  );
+  set.merge(new Set(["node", "postgres"]));
 
   console.log(set.values());
 
@@ -210,9 +182,7 @@
           }
         },
 
-        has: (value) =>
-          this.added.has(value) &&
-          !this.removed.has(value),
+        has: (value) => this.added.has(value) && !this.removed.has(value),
 
         merge: (remote) => {
           for (const value of remote.added) {
@@ -257,8 +227,7 @@
 
     createObservedRemoveSet() {
       const add = (value) => {
-        const tag =
-          `${this.replicaId}:${++this.sequence}`;
+        const tag = `${this.replicaId}:${++this.sequence}`;
 
         if (!this.adds.has(value)) {
           this.adds.set(value, new Set());
@@ -275,9 +244,7 @@
       };
 
       const has = (value) =>
-        [...(this.adds.get(value) ?? [])].some(
-          (tag) => !this.removes.has(tag)
-        );
+        [...(this.adds.get(value) ?? [])].some((tag) => !this.removes.has(tag));
 
       const merge = (remote) => {
         for (const [value, tags] of remote.adds) {

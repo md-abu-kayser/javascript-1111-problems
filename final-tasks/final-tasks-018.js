@@ -12,28 +12,19 @@
 
     createSeededRandom() {
       return () => {
-        this.seed =
-          Math.imul(
-            1664525,
-            this.seed
-          ) + 1013904223;
+        this.seed = Math.imul(1664525, this.seed) + 1013904223;
 
         this.seed >>>= 0;
 
-        return (
-          this.seed /
-          4294967296
-        );
+        return this.seed / 4294967296;
       };
     }
   }
 
   // Example
-  const myTodos =
-    new TodoApp(42);
+  const myTodos = new TodoApp(42);
 
-  const random =
-    myTodos.createSeededRandom();
+  const random = myTodos.createSeededRandom();
 
   console.log(random());
   console.log(random());
@@ -53,9 +44,7 @@
       this.todos = [];
     }
 
-    createFakeClock(
-      initialTime = 0
-    ) {
+    createFakeClock(initialTime = 0) {
       let now = initialTime;
       const timers = [];
 
@@ -69,25 +58,16 @@
           };
 
           timers.push(timer);
-          timers.sort(
-            (a, b) =>
-              a.time - b.time
-          );
+          timers.sort((a, b) => a.time - b.time);
 
           return timer;
         },
 
         advance(ms) {
-          const target =
-            now + ms;
+          const target = now + ms;
 
-          while (
-            timers.length &&
-            timers[0].time <=
-              target
-          ) {
-            const timer =
-              timers.shift();
+          while (timers.length && timers[0].time <= target) {
+            const timer = timers.shift();
 
             now = timer.time;
             timer.callback();
@@ -100,20 +80,11 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
-  const clock =
-    myTodos.createFakeClock();
+  const clock = myTodos.createFakeClock();
 
-  clock.setTimeout(
-    () =>
-      console.log(
-        "Executed at",
-        clock.now()
-      ),
-    500
-  );
+  clock.setTimeout(() => console.log("Executed at", clock.now()), 500);
 
   clock.advance(500);
 
@@ -142,8 +113,7 @@
         };
 
         try {
-          record.returned =
-            fn(...args);
+          record.returned = fn(...args);
 
           calls.push(record);
 
@@ -165,21 +135,13 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
-  const spy =
-    myTodos.createSpy(
-      (a, b) => a + b
-    );
+  const spy = myTodos.createSpy((a, b) => a + b);
 
-  console.log(
-    spy.fn(4, 6)
-  );
+  console.log(spy.fn(4, 6));
 
-  console.log(
-    spy.calls
-  );
+  console.log(spy.calls);
 
   //
 }
@@ -198,94 +160,45 @@
 
     createPropertyFuzzer(schema) {
       const generate = (definition) => {
-        if (
-          definition.type ===
-          "string"
-        ) {
-          const length =
-            definition.length ??
-            Math.floor(
-              this.random() * 8
-            ) + 1;
+        if (definition.type === "string") {
+          const length = definition.length ?? Math.floor(this.random() * 8) + 1;
 
-          return Array.from(
-            { length },
-            () =>
-              String.fromCharCode(
-                97 +
-                  Math.floor(
-                    this.random() *
-                      26
-                  )
-              )
+          return Array.from({ length }, () =>
+            String.fromCharCode(97 + Math.floor(this.random() * 26)),
           ).join("");
         }
 
-        if (
-          definition.type ===
-          "number"
-        ) {
-          const min =
-            definition.min ?? 0;
+        if (definition.type === "number") {
+          const min = definition.min ?? 0;
 
-          const max =
-            definition.max ?? 100;
+          const max = definition.max ?? 100;
 
-          return (
-            min +
-            Math.floor(
-              this.random() *
-                (max - min + 1)
-            )
-          );
+          return min + Math.floor(this.random() * (max - min + 1));
         }
 
-        if (
-          definition.type ===
-          "boolean"
-        ) {
-          return (
-            this.random() >=
-            0.5
-          );
+        if (definition.type === "boolean") {
+          return this.random() >= 0.5;
         }
 
-        if (
-          definition.type ===
-          "array"
-        ) {
+        if (definition.type === "array") {
           return Array.from(
             {
-              length:
-                definition.length ??
-                3,
+              length: definition.length ?? 3,
             },
-            () =>
-              generate(
-                definition.items
-              )
+            () => generate(definition.items),
           );
         }
 
-        if (
-          definition.type ===
-          "object"
-        ) {
+        if (definition.type === "object") {
           return Object.fromEntries(
-            Object.entries(
-              definition.properties
-            ).map(
-              ([key, value]) => [
-                key,
-                generate(value),
-              ]
-            )
+            Object.entries(definition.properties).map(([key, value]) => [
+              key,
+              generate(value),
+            ]),
           );
         }
 
-        throw new Error(
-          `Unknown schema type: ${definition.type}`
-        );
+        throw new Error(`Unknown schema type: ${definition.type}`);
       };
 
       return generate(schema);
@@ -293,8 +206,7 @@
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
   console.log(
     myTodos.createPropertyFuzzer({
@@ -313,7 +225,7 @@
           type: "boolean",
         },
       },
-    })
+    }),
   );
 
   //
@@ -330,36 +242,25 @@
       this.todos = [];
     }
 
-    createMutationTester(
-      original,
-      mutations,
-      test
-    ) {
+    createMutationTester(original, mutations, test) {
       const survivors = [];
       const killed = [];
 
       for (const mutation of mutations) {
-        const candidate =
-          mutation(original);
+        const candidate = mutation(original);
 
         let passed = false;
 
         try {
-          passed = Boolean(
-            test(candidate)
-          );
+          passed = Boolean(test(candidate));
         } catch {
           passed = false;
         }
 
         if (passed) {
-          survivors.push(
-            mutation.name
-          );
+          survivors.push(mutation.name);
         } else {
-          killed.push(
-            mutation.name
-          );
+          killed.push(mutation.name);
         }
       }
 
@@ -369,40 +270,26 @@
         score:
           mutations.length === 0
             ? 100
-            :
-                (killed.length /
-                  mutations.length) *
-                100,
+            : (killed.length / mutations.length) * 100,
       };
     }
   }
 
   // Example
-  const myTodos =
-    new TodoApp();
+  const myTodos = new TodoApp();
 
-  const result =
-    myTodos.createMutationTester(
-      (a, b) => a + b,
-      [
-        Object.assign(
-          (fn) => () =>
-            fn(2, 3) + 1,
-          {
-            name: "off-by-one",
-          }
-        ),
-        Object.assign(
-          (fn) => (a, b) =>
-            fn(b, a),
-          {
-            name: "argument-swap",
-          }
-        ),
-      ],
-      (fn) =>
-        fn(2, 3) === 5
-    );
+  const result = myTodos.createMutationTester(
+    (a, b) => a + b,
+    [
+      Object.assign((fn) => () => fn(2, 3) + 1, {
+        name: "off-by-one",
+      }),
+      Object.assign((fn) => (a, b) => fn(b, a), {
+        name: "argument-swap",
+      }),
+    ],
+    (fn) => fn(2, 3) === 5,
+  );
 
   console.log(result);
 

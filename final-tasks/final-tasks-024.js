@@ -13,17 +13,11 @@
       const controller = new AbortController();
 
       const child = () => {
-        const childController =
-          new AbortController();
+        const childController = new AbortController();
 
-        const abort = () =>
-          childController.abort();
+        const abort = () => childController.abort();
 
-        controller.signal.addEventListener(
-          "abort",
-          abort,
-          { once: true }
-        );
+        controller.signal.addEventListener("abort", abort, { once: true });
 
         return childController;
       };
@@ -66,9 +60,8 @@
       try {
         await Promise.all(
           tasks.map(async (task, index) => {
-            results[index] =
-              await task(controller.signal);
-          })
+            results[index] = await task(controller.signal);
+          }),
         );
 
         return results;
@@ -109,21 +102,14 @@
       this.todos = [];
     }
 
-    async createAdaptiveConcurrencyPool(
-      jobs,
-      options = {}
-    ) {
-      let concurrency =
-        options.initial ?? 2;
+    async createAdaptiveConcurrencyPool(jobs, options = {}) {
+      let concurrency = options.initial ?? 2;
 
-      const min =
-        options.min ?? 1;
+      const min = options.min ?? 1;
 
-      const max =
-        options.max ?? 8;
+      const max = options.max ?? 8;
 
-      const target =
-        options.targetMs ?? 100;
+      const target = options.targetMs ?? 100;
 
       const results = new Array(jobs.length);
       let next = 0;
@@ -136,21 +122,13 @@
 
           const started = performance.now();
 
-          results[index] =
-            await jobs[index]();
+          results[index] = await jobs[index]();
 
-          const latency =
-            performance.now() - started;
+          const latency = performance.now() - started;
 
-          if (
-            latency > target &&
-            concurrency > min
-          ) {
+          if (latency > target && concurrency > min) {
             concurrency--;
-          } else if (
-            latency < target / 2 &&
-            concurrency < max
-          ) {
+          } else if (latency < target / 2 && concurrency < max) {
             concurrency++;
           }
         }
@@ -160,13 +138,10 @@
         await Promise.all(
           Array.from(
             {
-              length: Math.min(
-                concurrency,
-                jobs.length - next
-              ),
+              length: Math.min(concurrency, jobs.length - next),
             },
-            worker
-          )
+            worker,
+          ),
         );
       }
 
@@ -179,17 +154,12 @@
 
   myTodos
     .createAdaptiveConcurrencyPool(
-      [
-        async () => "A",
-        async () => "B",
-        async () => "C",
-        async () => "D",
-      ],
+      [async () => "A", async () => "B", async () => "C", async () => "D"],
       {
         initial: 2,
         max: 4,
         targetMs: 50,
-      }
+      },
     )
     .then(console.log);
 
@@ -207,11 +177,7 @@
       this.todos = [];
     }
 
-    async createHedgedRequest(
-      primary,
-      backup,
-      hedgeDelay
-    ) {
+    async createHedgedRequest(primary, backup, hedgeDelay) {
       let timer;
 
       const hedge = new Promise((resolve) => {
@@ -221,10 +187,7 @@
       });
 
       try {
-        return await Promise.race([
-          primary(),
-          hedge,
-        ]);
+        return await Promise.race([primary(), hedge]);
       } finally {
         clearTimeout(timer);
       }
@@ -237,13 +200,11 @@
   myTodos
     .createHedgedRequest(
       async () => {
-        await new Promise((r) =>
-          setTimeout(r, 200)
-        );
+        await new Promise((r) => setTimeout(r, 200));
         return "primary";
       },
       async () => "backup",
-      50
+      50,
     )
     .then(console.log);
 
@@ -261,17 +222,12 @@
       this.todos = [];
     }
 
-    async createDeadlineBudget(
-      tasks,
-      budgetMs
-    ) {
-      const deadline =
-        Date.now() + budgetMs;
+    async createDeadlineBudget(tasks, budgetMs) {
+      const deadline = Date.now() + budgetMs;
       const results = [];
 
       for (const task of tasks) {
-        const remaining =
-          deadline - Date.now();
+        const remaining = deadline - Date.now();
 
         if (remaining <= 0) {
           throw new Error("Deadline exhausted");
@@ -282,15 +238,9 @@
             task(),
 
             new Promise((_, reject) =>
-              setTimeout(
-                () =>
-                  reject(
-                    new Error("Step timeout")
-                  ),
-                remaining
-              )
+              setTimeout(() => reject(new Error("Step timeout")), remaining),
             ),
-          ])
+          ]),
         );
       }
 
@@ -303,12 +253,8 @@
 
   myTodos
     .createDeadlineBudget(
-      [
-        async () => "validate",
-        async () => "persist",
-        async () => "notify",
-      ],
-      1000
+      [async () => "validate", async () => "persist", async () => "notify"],
+      1000,
     )
     .then(console.log);
 

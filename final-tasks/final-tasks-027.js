@@ -25,8 +25,7 @@
           let position = index;
 
           for (const parser of parsers) {
-            const result =
-              parser(input, position);
+            const result = parser(input, position);
 
             if (!result) return null;
 
@@ -45,8 +44,7 @@
         let position = index;
 
         while (true) {
-          const result =
-            parser(input, position);
+          const result = parser(input, position);
 
           if (!result) break;
 
@@ -70,7 +68,7 @@
 
   const todoParser = parser.sequence(
     parser.literal("todo:"),
-    parser.many(parser.literal("js"))
+    parser.many(parser.literal("js")),
   );
 
   console.log(todoParser("todo:jsjs", 0));
@@ -95,10 +93,7 @@
       let text = "";
 
       while (index < input.length) {
-        if (
-          input[index] === "$" &&
-          input[index + 1] === "{"
-        ) {
+        if (input[index] === "$" && input[index + 1] === "{") {
           if (text) {
             tokens.push({
               type: "text",
@@ -110,10 +105,7 @@
           index += 2;
           let expression = "";
 
-          while (
-            index < input.length &&
-            input[index] !== "}"
-          ) {
+          while (index < input.length && input[index] !== "}") {
             expression += input[index++];
           }
 
@@ -147,9 +139,7 @@
   const myTodos = new TodoApp();
 
   console.log(
-    myTodos.parseTemplateExpression(
-      "Hello ${user.name}, total=${count + 1}"
-    )
+    myTodos.parseTemplateExpression("Hello ${user.name}, total=${count + 1}"),
   );
 
   //
@@ -167,8 +157,7 @@
     }
 
     parseBooleanQuery(input) {
-      const tokens =
-        input.match(/\w+|\(|\)|AND|OR|NOT/g);
+      const tokens = input.match(/\w+|\(|\)|AND|OR|NOT/g);
 
       let position = 0;
 
@@ -180,7 +169,6 @@
 
           if (tokens[position++] !== ")") {
             throw new Error("Expected ')'");
-
           }
 
           return value;
@@ -188,7 +176,6 @@
 
         if (!token) {
           throw new Error("Unexpected end");
-
         }
 
         if (token === "NOT") {
@@ -241,11 +228,7 @@
   // Example
   const myTodos = new TodoApp();
 
-  console.log(
-    myTodos.parseBooleanQuery(
-      "JS AND (Node OR Go) AND NOT PHP"
-    )
-  );
+  console.log(myTodos.parseBooleanQuery("JS AND (Node OR Go) AND NOT PHP"));
 
   //
 }
@@ -296,7 +279,7 @@
         field: "completed",
         value: false,
       },
-    })
+    }),
   );
 
   //
@@ -320,10 +303,7 @@
         const current = bytecode[i];
         const next = bytecode[i + 1];
 
-        if (
-          current.op === "PUSH" &&
-          next?.op === "POP"
-        ) {
+        if (current.op === "PUSH" && next?.op === "POP") {
           i++;
           continue;
         }
@@ -343,7 +323,7 @@
       { op: "PUSH", value: 10 },
       { op: "POP" },
       { op: "PUSH", value: 20 },
-    ])
+    ]),
   );
 
   //

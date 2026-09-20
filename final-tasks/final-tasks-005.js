@@ -26,8 +26,7 @@
 
       while (
         this.timestamps.length &&
-        now - this.timestamps[0] >=
-          this.windowMs
+        now - this.timestamps[0] >= this.windowMs
       ) {
         this.timestamps.shift();
       }
@@ -45,17 +44,11 @@
   // Example
   const myTodos = new TodoApp(2, 1000);
 
-  console.log(
-    myTodos.consumeRateLimit()
-  );
+  console.log(myTodos.consumeRateLimit());
 
-  console.log(
-    myTodos.consumeRateLimit()
-  );
+  console.log(myTodos.consumeRateLimit());
 
-  console.log(
-    myTodos.consumeRateLimit()
-  );
+  console.log(myTodos.consumeRateLimit());
 
   //
 }
@@ -87,13 +80,8 @@
 
     async createCircuitBreaker(asyncFn) {
       if (this.state === "OPEN") {
-        if (
-          Date.now() - this.openedAt <
-          this.cooldownMs
-        ) {
-          throw new Error(
-            "Circuit is open"
-          );
+        if (Date.now() - this.openedAt < this.cooldownMs) {
+          throw new Error("Circuit is open");
         }
 
         this.state = "HALF_OPEN";
@@ -109,10 +97,7 @@
       } catch (error) {
         this.failures++;
 
-        if (
-          this.failures >=
-          this.failureThreshold
-        ) {
+        if (this.failures >= this.failureThreshold) {
           this.state = "OPEN";
           this.openedAt = Date.now();
         }
@@ -153,12 +138,8 @@
       this.todos = [];
     }
 
-    async runWithTimeout(
-      asyncFn,
-      timeoutMs
-    ) {
-      const controller =
-        new AbortController();
+    async runWithTimeout(asyncFn, timeoutMs) {
+      const controller = new AbortController();
 
       let timer;
 
@@ -170,9 +151,7 @@
             timer = setTimeout(() => {
               controller.abort();
 
-              reject(
-                new Error("Operation timed out")
-              );
+              reject(new Error("Operation timed out"));
             }, timeoutMs);
           }),
         ]);
@@ -186,20 +165,15 @@
   const myTodos = new TodoApp();
 
   myTodos
-    .runWithTimeout(
-      async (signal) => {
-        await new Promise((resolve) =>
-          setTimeout(resolve, 500)
-        );
+    .runWithTimeout(async (signal) => {
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-        if (signal.aborted) {
-          throw new Error("Operation aborted");
-        }
+      if (signal.aborted) {
+        throw new Error("Operation aborted");
+      }
 
-        return "Completed";
-      },
-      100
-    )
+      return "Completed";
+    }, 100)
     .then(console.log)
     .catch(console.error);
 
@@ -217,12 +191,7 @@
       this.todos = [];
     }
 
-    addTodo(
-      name,
-      category,
-      time,
-      priority = 0
-    ) {
+    addTodo(name, category, time, priority = 0) {
       this.todos.push({
         name,
         category,
@@ -238,22 +207,12 @@
           todo,
           index,
         }))
-        .sort(
-          (a, b) =>
-            b.todo.priority -
-            a.todo.priority
-        );
+        .sort((a, b) => b.todo.priority - a.todo.priority);
 
-      const results = new Array(
-        this.todos.length
-      );
+      const results = new Array(this.todos.length);
 
       for (const item of queue) {
-        results[item.index] =
-          await worker(
-            item.todo,
-            item.index
-          );
+        results[item.index] = await worker(item.todo, item.index);
       }
 
       return results;
@@ -263,37 +222,18 @@
   // Example
   const myTodos = new TodoApp();
 
-  myTodos.addTodo(
-    "Low Priority",
-    "Personal",
-    "2 hours",
-    1
-  );
+  myTodos.addTodo("Low Priority", "Personal", "2 hours", 1);
 
-  myTodos.addTodo(
-    "Critical Bug",
-    "Learning",
-    "1 hour",
-    10
-  );
+  myTodos.addTodo("Critical Bug", "Learning", "1 hour", 10);
 
-  myTodos.addTodo(
-    "Documentation",
-    "Learning",
-    "2 hours",
-    5
-  );
+  myTodos.addTodo("Documentation", "Learning", "2 hours", 5);
 
   myTodos
-    .prioritizeAsyncTasks(
-      async (todo) => {
-        await new Promise((resolve) =>
-          setTimeout(resolve, 100)
-        );
+    .prioritizeAsyncTasks(async (todo) => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
-        return `${todo.name}: done`;
-      }
-    )
+      return `${todo.name}: done`;
+    })
     .then(console.log);
 
   //
@@ -322,54 +262,34 @@
     }
 
     setCategoryWeight(category, weight) {
-      this.categoryWeights.set(
-        category,
-        Math.max(1, weight)
-      );
+      this.categoryWeights.set(category, Math.max(1, weight));
 
       if (!this.categoryCredits.has(category)) {
-        this.categoryCredits.set(
-          category,
-          0
-        );
+        this.categoryCredits.set(category, 0);
       }
     }
 
     createWeightedFairQueue(count) {
-      const pending = this.todos.filter(
-        (todo) => !todo.completed
-      );
+      const pending = this.todos.filter((todo) => !todo.completed);
 
       for (const todo of pending) {
         if (!this.categoryCredits.has(todo.category)) {
-          this.categoryCredits.set(
-            todo.category,
-            0
-          );
+          this.categoryCredits.set(todo.category, 0);
         }
       }
 
       const result = [];
 
-      while (
-        result.length < count &&
-        pending.some(Boolean)
-      ) {
+      while (result.length < count && pending.some(Boolean)) {
         let selectedIndex = -1;
         let selectedScore = -Infinity;
 
         pending.forEach((todo, index) => {
           if (!todo) return;
 
-          const weight =
-            this.categoryWeights.get(
-              todo.category
-            ) ?? 1;
+          const weight = this.categoryWeights.get(todo.category) ?? 1;
 
-          const credit =
-            this.categoryCredits.get(
-              todo.category
-            ) ?? 0;
+          const credit = this.categoryCredits.get(todo.category) ?? 0;
 
           const score = credit + weight;
 
@@ -383,24 +303,19 @@
           break;
         }
 
-        const selected =
-          pending[selectedIndex];
+        const selected = pending[selectedIndex];
 
         pending[selectedIndex] = null;
 
         this.categoryCredits.set(
           selected.category,
-          this.categoryCredits.get(
-            selected.category
-          ) - 1
+          this.categoryCredits.get(selected.category) - 1,
         );
 
         for (const [category, weight] of this.categoryWeights) {
           this.categoryCredits.set(
             category,
-            (this.categoryCredits.get(
-              category
-            ) ?? 0) + weight
+            (this.categoryCredits.get(category) ?? 0) + weight,
           );
         }
 
@@ -414,53 +329,23 @@
   // Example
   const myTodos = new TodoApp();
 
-  myTodos.addTodo(
-    "Security Patch",
-    "Security",
-    "2 hours"
-  );
+  myTodos.addTodo("Security Patch", "Security", "2 hours");
 
-  myTodos.addTodo(
-    "Feature",
-    "Development",
-    "5 hours"
-  );
+  myTodos.addTodo("Feature", "Development", "5 hours");
 
-  myTodos.addTodo(
-    "Docs",
-    "Documentation",
-    "1 hour"
-  );
+  myTodos.addTodo("Docs", "Documentation", "1 hour");
 
-  myTodos.addTodo(
-    "Testing",
-    "Testing",
-    "2 hours"
-  );
+  myTodos.addTodo("Testing", "Testing", "2 hours");
 
-  myTodos.setCategoryWeight(
-    "Security",
-    5
-  );
+  myTodos.setCategoryWeight("Security", 5);
 
-  myTodos.setCategoryWeight(
-    "Development",
-    3
-  );
+  myTodos.setCategoryWeight("Development", 3);
 
-  myTodos.setCategoryWeight(
-    "Testing",
-    2
-  );
+  myTodos.setCategoryWeight("Testing", 2);
 
-  myTodos.setCategoryWeight(
-    "Documentation",
-    1
-  );
+  myTodos.setCategoryWeight("Documentation", 1);
 
-  console.log(
-    myTodos.createWeightedFairQueue(4)
-  );
+  console.log(myTodos.createWeightedFairQueue(4));
 
   //
 }

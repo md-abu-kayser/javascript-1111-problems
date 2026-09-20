@@ -24,46 +24,27 @@
 
       this.history.push({
         version: this.version,
-        state: structuredClone(
-          this.todos
-        ),
+        state: structuredClone(this.todos),
       });
     }
 
     readAtVersion(version) {
-      const snapshot = [
-        ...this.history,
-      ]
+      const snapshot = [...this.history]
         .reverse()
-        .find(
-          (entry) =>
-            entry.version <= version
-        );
+        .find((entry) => entry.version <= version);
 
-      return snapshot
-        ? structuredClone(snapshot.state)
-        : [];
+      return snapshot ? structuredClone(snapshot.state) : [];
     }
   }
 
   // Example
   const myTodos = new TodoApp();
 
-  myTodos.addTodo(
-    "Version One",
-    "Learning",
-    "2 hours"
-  );
+  myTodos.addTodo("Version One", "Learning", "2 hours");
 
-  myTodos.addTodo(
-    "Version Two",
-    "Learning",
-    "3 hours"
-  );
+  myTodos.addTodo("Version Two", "Learning", "3 hours");
 
-  console.log(
-    myTodos.readAtVersion(1)
-  );
+  console.log(myTodos.readAtVersion(1));
 
   //
 }
@@ -91,22 +72,15 @@
       this.version++;
     }
 
-    optimisticTodoTransaction(
-      expectedVersion,
-      updater
-    ) {
-      if (
-        expectedVersion !==
-        this.version
-      ) {
+    optimisticTodoTransaction(expectedVersion, updater) {
+      if (expectedVersion !== this.version) {
         return {
           committed: false,
           reason: "VERSION_CONFLICT",
         };
       }
 
-      const draft =
-        structuredClone(this.todos);
+      const draft = structuredClone(this.todos);
 
       updater(draft);
 
@@ -123,28 +97,16 @@
   // Example
   const myTodos = new TodoApp();
 
-  myTodos.addTodo(
-    "Database Design",
-    "Learning",
-    "4 hours"
-  );
+  myTodos.addTodo("Database Design", "Learning", "4 hours");
 
-  const version =
-    myTodos.version;
+  const version = myTodos.version;
 
-  myTodos.addTodo(
-    "API Design",
-    "Learning",
-    "3 hours"
-  );
+  myTodos.addTodo("API Design", "Learning", "3 hours");
 
   console.log(
-    myTodos.optimisticTodoTransaction(
-      version,
-      (draft) => {
-        draft[0].completed = true;
-      }
-    )
+    myTodos.optimisticTodoTransaction(version, (draft) => {
+      draft[0].completed = true;
+    }),
   );
 
   //
@@ -179,11 +141,7 @@
 
     applyOperation(operation) {
       if (operation.type === "ADD") {
-        this.todos.push(
-          structuredClone(
-            operation.payload
-          )
-        );
+        this.todos.push(structuredClone(operation.payload));
       }
 
       if (operation.type === "CLEAR") {
@@ -194,9 +152,7 @@
     recover() {
       this.todos = [];
 
-      for (const operation of [
-        ...this.writeAheadLog,
-      ]) {
+      for (const operation of [...this.writeAheadLog]) {
         this.applyOperation(operation);
       }
 
@@ -207,15 +163,9 @@
   // Example
   const myTodos = new TodoApp();
 
-  myTodos.addTodo(
-    "Recoverable Task",
-    "Learning",
-    "4 hours"
-  );
+  myTodos.addTodo("Recoverable Task", "Learning", "4 hours");
 
-  console.log(
-    myTodos.writeAheadLog
-  );
+  console.log(myTodos.writeAheadLog);
 
   console.log(myTodos.recover());
 
@@ -243,46 +193,29 @@
     }
 
     createQueryPlanner(filters) {
-      const sorted = [...filters]
-        .sort(
-          (a, b) =>
-            a.cost - b.cost
-        );
+      const sorted = [...filters].sort((a, b) => a.cost - b.cost);
 
-      return (todo) =>
-        sorted.every((filter) =>
-          filter.test(todo)
-        );
+      return (todo) => sorted.every((filter) => filter.test(todo));
     }
   }
 
   // Example
   const myTodos = new TodoApp();
 
-  myTodos.addTodo(
-    "Secure API",
-    "Learning",
-    "5 hours"
-  );
+  myTodos.addTodo("Secure API", "Learning", "5 hours");
 
-  const planner =
-    myTodos.createQueryPlanner([
-      {
-        cost: 10,
-        test: (todo) =>
-          todo.name.length > 3,
-      },
-      {
-        cost: 1,
-        test: (todo) =>
-          todo.category ===
-          "Learning",
-      },
-    ]);
+  const planner = myTodos.createQueryPlanner([
+    {
+      cost: 10,
+      test: (todo) => todo.name.length > 3,
+    },
+    {
+      cost: 1,
+      test: (todo) => todo.category === "Learning",
+    },
+  ]);
 
-  console.log(
-    myTodos.todos.filter(planner)
-  );
+  console.log(myTodos.todos.filter(planner));
 
   //
 }
@@ -309,10 +242,7 @@
       }
 
       if (command.type === "COMPLETE") {
-        const todo = this.todos.find(
-          (item) =>
-            item.name === command.name
-        );
+        const todo = this.todos.find((item) => item.name === command.name);
 
         if (todo) {
           todo.completed = true;
@@ -347,9 +277,7 @@
     },
   ];
 
-  console.log(
-    myTodos.replay(commands)
-  );
+  console.log(myTodos.replay(commands));
 
   //
 }

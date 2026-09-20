@@ -26,9 +26,7 @@
   // Example
   const myTodos = new TodoApp();
 
-  console.log(
-    myTodos.encodeVarint(300)
-  );
+  console.log(myTodos.encodeVarint(300));
 
   //
 }
@@ -51,8 +49,7 @@
       for (let i = 0; i < bytes.length; i++) {
         const byte = bytes[i];
 
-        value +=
-          (byte & 127) * multiplier;
+        value += (byte & 127) * multiplier;
 
         if (!(byte & 128)) {
           return {
@@ -75,11 +72,7 @@
   // Example
   const myTodos = new TodoApp();
 
-  console.log(
-    myTodos.decodeVarint(
-      Uint8Array.from([172, 2])
-    )
-  );
+  console.log(myTodos.decodeVarint(Uint8Array.from([172, 2])));
 
   //
 }
@@ -97,14 +90,9 @@
 
     createTlvEncoder() {
       const encode = (type, value) => {
-        const payload =
-          new TextEncoder().encode(
-            String(value)
-          );
+        const payload = new TextEncoder().encode(String(value));
 
-        const result = new Uint8Array(
-          2 + payload.length
-        );
+        const result = new Uint8Array(2 + payload.length);
 
         result[0] = type;
         result[1] = payload.length;
@@ -117,20 +105,13 @@
         const type = buffer[0];
         const length = buffer[1];
 
-        if (
-          buffer.length !==
-          length + 2
-        ) {
-          throw new Error(
-            "Invalid TLV length"
-          );
+        if (buffer.length !== length + 2) {
+          throw new Error("Invalid TLV length");
         }
 
         return {
           type,
-          value: new TextDecoder().decode(
-            buffer.slice(2)
-          ),
+          value: new TextDecoder().decode(buffer.slice(2)),
         };
       };
 
@@ -142,8 +123,7 @@
   const myTodos = new TodoApp();
 
   const tlv = myTodos.createTlvEncoder();
-  const encoded =
-    tlv.encode(1, "todo-763");
+  const encoded = tlv.encode(1, "todo-763");
 
   console.log(tlv.decode(encoded));
 
@@ -164,46 +144,29 @@
 
     createFrameDecoder() {
       const push = (chunk) => {
-        const next = new Uint8Array(
-          this.buffer.length + chunk.length
-        );
+        const next = new Uint8Array(this.buffer.length + chunk.length);
 
         next.set(this.buffer);
-        next.set(
-          chunk,
-          this.buffer.length
-        );
+        next.set(chunk, this.buffer.length);
 
         this.buffer = next;
 
         const frames = [];
 
         while (this.buffer.length >= 4) {
-          const length =
-            new DataView(
-              this.buffer.buffer,
-              this.buffer.byteOffset,
-              4
-            ).getUint32(0);
+          const length = new DataView(
+            this.buffer.buffer,
+            this.buffer.byteOffset,
+            4,
+          ).getUint32(0);
 
-          if (
-            this.buffer.length <
-            4 + length
-          ) {
+          if (this.buffer.length < 4 + length) {
             break;
           }
 
-          frames.push(
-            this.buffer.slice(
-              4,
-              4 + length
-            )
-          );
+          frames.push(this.buffer.slice(4, 4 + length));
 
-          this.buffer =
-            this.buffer.slice(
-              4 + length
-            );
+          this.buffer = this.buffer.slice(4 + length);
         }
 
         return frames;
@@ -215,11 +178,9 @@
 
   // Example
   const myTodos = new TodoApp();
-  const decoder =
-    myTodos.createFrameDecoder();
+  const decoder = myTodos.createFrameDecoder();
 
-  const payload =
-    new TextEncoder().encode("HELLO");
+  const payload = new TextEncoder().encode("HELLO");
 
   console.log(decoder.push(payload));
 
@@ -241,37 +202,24 @@
       let checksum = 0;
 
       for (const byte of new TextEncoder().encode(input)) {
-        checksum =
-          (checksum + byte) % 65521;
-        checksum =
-          (checksum * 257) % 65521;
+        checksum = (checksum + byte) % 65521;
+        checksum = (checksum * 257) % 65521;
       }
 
       return checksum;
     }
 
     verifyChecksum(input, expected) {
-      return (
-        this.createChecksum(input) ===
-        expected
-      );
+      return this.createChecksum(input) === expected;
     }
   }
 
   // Example
   const myTodos = new TodoApp();
 
-  const checksum =
-    myTodos.createChecksum(
-      "todo-payload"
-    );
+  const checksum = myTodos.createChecksum("todo-payload");
 
-  console.log(
-    myTodos.verifyChecksum(
-      "todo-payload",
-      checksum
-    )
-  );
+  console.log(myTodos.verifyChecksum("todo-payload", checksum));
 
   //
 }

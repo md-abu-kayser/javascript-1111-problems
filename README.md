@@ -1,4 +1,4 @@
-# JavaScript — 600+ Problems Solved
+# JavaScript — 1111+ Problems Solved
 
 <p align="center">
   <strong>600+ JavaScript Problems • Fundamentals to Advanced Patterns • Runnable Learning Examples</strong>

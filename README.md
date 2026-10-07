@@ -1686,27 +1686,6 @@ For collaboration, technical discussions, portfolio reviews, or professional opp
 
 ---
 
-# Repository Information
-
-| Property           | Details                                   |
-| ------------------ | ----------------------------------------- |
-| Repository         | `javascript-600-problems`                 |
-| Problem Count      | 600+                                      |
-| Primary Language   | JavaScript                                |
-| Standard           | ECMAScript                                |
-| Runtime            | Node.js                                   |
-| Basic Workspace    | `js-basic/`                               |
-| Advanced Workspace | `js-advanced/`                            |
-| Primary Use        | Learning, practice, interview preparation |
-| License            | MIT                                       |
-| Maintainer         | Md Abu Kayser                             |
-
----
-
-<p align="center">
-  <a href="#javascript--600-problems-solved">⬆ Back to top</a>
-</p>
-
 <p align="center">
   <strong>Practice deliberately. Understand deeply. Engineer thoughtfully.</strong>
 </p>

@@ -1,7 +1,5 @@
 # JavaScript — 1111+ Problems Solved
 
-# JavaScript Problem Solving
-
 <p align="center">
   <strong>Practical JavaScript Exercises, Language Fundamentals & Advanced Engineering Concepts</strong>
 </p>
